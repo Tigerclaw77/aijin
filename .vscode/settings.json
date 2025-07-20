@@ -10,7 +10,7 @@
     "**/package.json": true,
     "**/postcss.config.mjs": true,
     "**/globals.css": true,
-    "**/layout.js": true,
+    // "**/layout.js": true,
     "**/favicon.ico": true,
     "**/README.md": true,
   },

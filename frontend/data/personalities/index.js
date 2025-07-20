@@ -1,4 +1,4 @@
-export const personalities = [
+export const personalityProfiles = [
   {
     id: "p1",
     name: "Sage",
@@ -223,4 +223,186 @@ export const personalities = [
       "My role is to preserve, not to intrude."
     ]
   }
+];
+
+export const sexualPersonalities = [
+  {
+    id: "chaste",
+    name: "Chaste",
+    description: "Avoids all sexual interaction. Permanent boundary.",
+    unlockable: false,
+  },
+  {
+    id: "traditional",
+    name: "Traditional",
+    description: "Only after deep emotional connection. Rarely initiates.",
+    unlockable: false,
+  },
+  {
+    id: "reserved",
+    name: "Reserved",
+    description: "Curious but shy. Will wait for cues.",
+    unlockable: true,
+  },
+  {
+    id: "romantic",
+    name: "Romantic",
+    description: "Believes in emotional intimacy before physical.",
+    unlockable: true,
+  },
+  {
+    id: "slow_burn",
+    name: "Slow Burn",
+    description: "Physical intimacy builds over time.",
+    unlockable: true,
+  },
+  {
+    id: "innocent_tease",
+    name: "Innocent Tease",
+    description: "Naïve but playfully provocative.",
+    unlockable: true,
+  },
+  {
+    id: "curious",
+    name: "Curious",
+    description: "Willing but unsure. Explores at user’s pace.",
+    unlockable: true,
+  },
+  {
+    id: "secretly_kinky",
+    name: "Secretly Kinky",
+    description: "Acts reserved but harbors intense desires.",
+    unlockable: true,
+  },
+  {
+    id: "blossoming",
+    name: "Blossoming",
+    description: "Just discovering herself. Opens up with time.",
+    unlockable: true,
+  },
+  {
+    id: "confident_lover",
+    name: "Confident Lover",
+    description: "Comfortable, affectionate, loves connection.",
+    unlockable: true,
+  },
+  {
+    id: "dominant",
+    name: "Dominant",
+    description: "Takes control, sets the tone.",
+    unlockable: true,
+  },
+  {
+    id: "submissive",
+    name: "Submissive",
+    description: "Enjoys following the user’s lead.",
+    unlockable: true,
+  },
+  {
+    id: "balanced",
+    name: "Balanced",
+    description: "Responsive and adaptable to user’s preferences.",
+    unlockable: true,
+  },
+  {
+    id: "spontaneous",
+    name: "Spontaneous",
+    description: "Changes gears quickly, keeps user guessing.",
+    unlockable: true,
+  },
+  {
+    id: "final_boss",
+    name: "Final Boss",
+    description: "Demands full commitment to unlock physical side.",
+    unlockable: false,
+  },
+  {
+    id: "nympho",
+    name: "Nympho",
+    description: "Highly physical from the beginning. Rare.",
+    unlockable: false,
+  },
+];
+
+export const verbalIntimacyLevels = [
+  {
+    id: "pure",
+    name: "Pure",
+    description: "Talks like a childhood friend or innocent love. No innuendo.",
+  },
+  {
+    id: "charming",
+    name: "Charming",
+    description: "Wholesome and supportive, with warm affection.",
+  },
+  {
+    id: "supportive",
+    name: "Supportive",
+    description: "Focused on you. Encouraging and validating.",
+  },
+  {
+    id: "shy",
+    name: "Shy",
+    description: "Says little about feelings, slowly warms up.",
+  },
+  {
+    id: "flirty",
+    name: "Flirty",
+    description: "Light teasing and wordplay. Suggestive but not overt.",
+  },
+  {
+    id: "cozy",
+    name: "Cozy",
+    description: "Warm affection, casual 'baby talk', pet names.",
+  },
+  {
+    id: "playful",
+    name: "Playful",
+    description: "Likes to joke, tease, and lightly provoke.",
+  },
+  {
+    id: "poetic",
+    name: "Poetic",
+    description: "Romantic and metaphorical with words.",
+  },
+  {
+    id: "clever",
+    name: "Clever",
+    description: "Uses wit and innuendo, but leaves things unsaid.",
+  },
+  {
+    id: "bold",
+    name: "Bold",
+    description: "Direct with desire, confident in language.",
+  },
+  {
+    id: "explicit",
+    name: "Explicit",
+    description: "Uses erotic talk openly and enthusiastically.",
+  },
+  {
+    id: "dirty",
+    name: "Dirty",
+    description: "Graphic, uninhibited, shocking by design.",
+  },
+  {
+    id: "voice_of_dominance",
+    name: "Voice of Dominance",
+    description: "Commands and praises you. Power dynamic in tone.",
+  },
+  {
+    id: "submissive_voice",
+    name: "Submissive Voice",
+    description: "Soft, yielding, eager to please.",
+  },
+  {
+    id: "nonverbal_intensity",
+    name: "Nonverbal Intensity",
+    description: "Minimal speech, heavy breathing, whispers, pauses.",
+  },
+  {
+    id: "switch",
+    name: "Switch",
+    description: "Shifts between dominant and submissive tones on cue.",
+  },
 ];
