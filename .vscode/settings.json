@@ -9,7 +9,7 @@
     "**/next.config.mjs": true,
     "**/package.json": true,
     "**/postcss.config.mjs": true,
-    "**/globals.css": true,
+    // "**/globals.css": true,
     // "**/layout.js": true,
     "**/favicon.ico": true,
     "**/README.md": true,
@@ -20,5 +20,5 @@
     "**/dist": true,
     "**/.next": true
   },
-  "explorer.excludeGitIgnore": true
+  // "explorer.excludeGitIgnore": true
 }

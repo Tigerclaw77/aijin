@@ -1,58 +1,63 @@
-import { useState } from "react";
+'use client';
 
-export default function CharacterCard({ name, description, image, onClick, isSelected, sampleQuotes, showAskField }) {
-  const [mockInput, setMockInput] = useState("");
-  const [mockResponse, setMockResponse] = useState("");
+import Image from 'next/image';
 
-  const handleMockAsk = () => {
-    if (!mockInput.trim()) return;
-    setMockResponse(`"${name}" might say: “Hmm… ${mockInput}? That’s an interesting one.”`);
-  };
+export default function CharacterCard({
+  name,
+  description,
+  image,
+  onClick,
+  isSelected,
+  label = 'standard',
+  className = '',
+}) {
+  const isPremium = label === 'premium';
+  const isNiche = label === 'niche';
 
   return (
     <div
-      onClick={!showAskField ? onClick : undefined}
-      className={`cursor-pointer border rounded-xl p-4 shadow-sm hover:shadow-md transition ${
-        isSelected ? "border-blue-500 ring-2 ring-blue-400" : "border-gray-200"
-      }`}
+      onClick={onClick}
+      className={`cursor-pointer rounded-xl overflow-hidden border shadow-md transition-transform relative
+        ${isSelected ? 'ring-2 ring-pink-500' : ''}
+        ${isPremium
+          ? 'bg-gradient-to-br from-[#3b0a48] via-[#111] to-[#1a002d] border-pink-400/50 shadow-pink-500/40 hover:shadow-pink-500/60'
+          : 'bg-[#111] border-white/10'}
+        hover:scale-[1.03] ${className}`}
     >
-      {image && (
-        <img
+      {/* IMAGE */}
+      <div className="relative w-full h-[600px]">
+        <Image
           src={image}
           alt={name}
-          className="w-full h-124 object-cover rounded-md mb-3"
+          layout="fill"
+          objectFit="cover"
+          objectPosition="top 20%"
+          className="w-full h-full z-0"
         />
+        <div className="absolute bottom-0 w-full h-28 z-10 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+      </div>
+
+      {/* TEXT */}
+      <div className="absolute bottom-0 z-20 p-4 text-white">
+        <h3 className={`text-lg font-semibold drop-shadow-md ${isPremium ? 'text-pink-300' : ''}`}>
+          {name}
+        </h3>
+        <p className="text-sm text-gray-200 mt-1 drop-shadow-md">{description}</p>
+      </div>
+
+      {/* SELECTED TAG */}
+      {isSelected && (
+        <div className="absolute top-2 left-2 bg-pink-600 text-xs text-white px-2 py-1 rounded-md z-30">
+          Selected
+        </div>
       )}
 
-      <h2 className="text-lg font-semibold">{name}</h2>
-      <p className="text-sm text-gray-600 mb-2">{description}</p>
-
-      {sampleQuotes && (
-        <ul className="text-sm text-gray-500 space-y-1 mb-3">
-          {sampleQuotes.map((quote, idx) => (
-            <li key={idx}>“{quote}”</li>
-          ))}
-        </ul>
-      )}
-
-      {showAskField && (
-        <div className="mt-3 space-y-2">
-          <input
-            type="text"
-            placeholder="Ask a question..."
-            className="w-full border px-3 py-1 rounded text-sm"
-            value={mockInput}
-            onChange={(e) => setMockInput(e.target.value)}
-          />
-          <button
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-            onClick={handleMockAsk}
-          >
-            Preview Answer
-          </button>
-          {mockResponse && (
-            <p className="text-xs text-gray-600 italic mt-1">{mockResponse}</p>
-          )}
+      {/* PREMIUM RIBBON */}
+      {isPremium && (
+        <div className="absolute top-0 right-0 z-30">
+          <div className="bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-bl-md shadow-md">
+            Premium
+          </div>
         </div>
       )}
     </div>

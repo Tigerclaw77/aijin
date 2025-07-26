@@ -1,43 +1,46 @@
-'use client'
+"use client";
+export const runtime = 'nodejs';
 
-import { useEffect, useState } from 'react'
-import { supabase } from '../../utils/supabase'
-import { useUserStore } from '../../store/userStore'
+import { useEffect, useState } from "react";
+import { supabase } from "../../utils/supabaseClient";
+import { useUserStore } from "../../store/userStore";
 
 export default function AuthTest() {
-  const [loading, setLoading] = useState(true)
-  const { user, setUser, clearUser } = useUserStore()
+  const [loading, setLoading] = useState(true);
+  const { user, setUser, clearUser } = useUserStore();
 
   useEffect(() => {
     const getSession = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await supabase.auth.getSession();
 
       if (session?.user) {
-        setUser(session.user)
+        setUser(session.user);
       } else {
-        clearUser()
+        clearUser();
       }
 
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    getSession()
+    getSession();
 
     // Optional: Listen for changes
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-      } else {
-        clearUser()
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          clearUser();
+        }
       }
-    })
+    );
 
-    return () => listener?.subscription.unsubscribe()
-  }, [])
+    return () => listener?.subscription.unsubscribe();
+  }, []);
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="p-4">
@@ -47,8 +50,8 @@ export default function AuthTest() {
           <button
             className="bg-red-500 text-white px-4 py-2 rounded"
             onClick={async () => {
-              await supabase.auth.signOut()
-              clearUser()
+              await supabase.auth.signOut();
+              clearUser();
             }}
           >
             Logout
@@ -57,10 +60,10 @@ export default function AuthTest() {
       ) : (
         <form
           onSubmit={async (e) => {
-            e.preventDefault()
-            const email = e.target.email.value
-            await supabase.auth.signInWithOtp({ email })
-            alert('Check your email for the magic link')
+            e.preventDefault();
+            const email = e.target.email.value;
+            await supabase.auth.signInWithOtp({ email });
+            alert("Check your email for the magic link");
           }}
         >
           <input
@@ -69,11 +72,14 @@ export default function AuthTest() {
             placeholder="Enter your email"
             className="border p-2 mr-2"
           />
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
             Send Magic Link
           </button>
         </form>
       )}
     </div>
-  )
+  );
 }
