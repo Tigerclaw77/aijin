@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { useUserStore } from "../../store/userStore";
+import useUserStore from "../../store/userStore";
 
 export default function AuthTest() {
   const [loading, setLoading] = useState(true);
