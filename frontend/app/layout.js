@@ -2,15 +2,16 @@ import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SyncCompanionState from "../components/SyncCompanionState";
-import { Geist, Geist_Mono, Great_Vibes } from "next/font/google";
-import ClientLayout from "../components/ClientLayout"; // new file
+import ClientLayout from "../components/ClientLayout";
 
-const geistSans = Geist({
+import { Inter, Roboto_Mono, Great_Vibes } from "next/font/google"; // Replacing Geist fonts with similar ones
+
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = Roboto_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });

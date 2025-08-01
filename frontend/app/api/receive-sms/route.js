@@ -1,8 +1,4 @@
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const runtime = "nodejs"; // ✅ modern App Router syntax
 
 export async function POST(req) {
   try {
