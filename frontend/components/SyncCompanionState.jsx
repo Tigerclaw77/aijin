@@ -12,14 +12,12 @@ export default function SyncCompanionState() {
 
   const {
     currentCompanion,
-    hydrated,
     setCurrentCompanion,
     setSelectedPersonality,
     setSelectedAvatar,
     setSelectedIntimacy,
     setSelectedIntimacyArchetype,
     setCustomName,
-    setHydrated,
   } = useCompanionStore();
 
   useEffect(() => {
@@ -27,13 +25,12 @@ export default function SyncCompanionState() {
       const user_id = user?.id;
       if (!user_id) {
         console.warn("⛔ No user_id found in auth store");
-        setHydrated(true);
         return;
       }
 
-      // 🛑 Skip if already hydrated or companion is set
-      if (hydrated || currentCompanion?.companion_id) {
-        console.log("⏭️ Skipping sync (already hydrated or companion exists)");
+      // 🛑 Skip if companion is set
+      if (currentCompanion?.companion_id) {
+        console.log("⏭️ Skipping sync (companion exists)");
         return;
       }
 
@@ -49,7 +46,6 @@ export default function SyncCompanionState() {
           "⛔ Missing selected_companion_id in profile:",
           profileError
         );
-        setHydrated(true);
         return;
       }
 
@@ -64,7 +60,6 @@ export default function SyncCompanionState() {
 
       if (companionError || !companion) {
         console.error("🛑 Failed to fetch companion:", companionError?.message);
-        setHydrated(true);
         return;
       }
 
@@ -111,12 +106,10 @@ export default function SyncCompanionState() {
       if (companion.custom_name) {
         setCustomName(companion.custom_name);
       }
-
-      setHydrated(true);
     };
 
     fetchAndSetCompanion();
-  }, [user, currentCompanion, hydrated]);
+  }, [user, currentCompanion]);
 
   return null;
 }

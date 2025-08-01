@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import useAuthStore from "../store/authStore";
 
 export default function ClientLayout({ children }) {
-  const { user, fetchUser, hasHydrated } = useAuthStore();
+  const { user, fetchUser } = useAuthStore();
 
   useEffect(() => {
     const run = async () => {
@@ -17,8 +17,7 @@ export default function ClientLayout({ children }) {
   useEffect(() => {
     console.log("✅ Zustand user from authStore:", user);
     console.log("🧠 user?.id =", user?.id);
-    console.log("🪩 hasHydrated =", hasHydrated);
-  }, [user, hasHydrated]);
+  }, [user]);
 
   return <>{children}</>;
 }

@@ -29,9 +29,7 @@ export default function useChatLogic({
   user,
   currentCompanion,
   selectedPersonality,
-  companionHydrated,
   setCurrentCompanion = () => {},
-  setHydrated = () => {},
   setActiveGift = () => {},
 }) {
   const [messages, setMessages] = useState([]);
@@ -65,27 +63,25 @@ export default function useChatLogic({
     });
   }, [user?.id]);
 
-  useEffect(() => {
-    const hydrateCompanion = async () => {
-      if (!user?.id || companionHydrated || currentCompanion?.companion_id) return;
+  // useEffect(() => {
+  //   const hydrateCompanion = async () => {
+  //     if (!user?.id || currentCompanion?.companion_id) return;
 
-      const { data, error } = await supabase
-        .from("companions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+  //     const { data, error } = await supabase
+  //       .from("companions")
+  //       .select("*")
+  //       .eq("user_id", user.id)
+  //       .order("created_at", { ascending: false })
+  //       .limit(1)
+  //       .maybeSingle();
 
-      if (data && !error) {
-        setCurrentCompanion(data);
-      }
+  //     if (data && !error) {
+  //       setCurrentCompanion(data);
+  //     }
+  //   };
 
-      setHydrated(true);
-    };
-
-    hydrateCompanion();
-  }, [user, currentCompanion, companionHydrated, setCurrentCompanion, setHydrated]);
+  //   hydrateCompanion();
+  // }, [user, currentCompanion, setCurrentCompanion]);
 
   const personality = useMemo(() => {
     return (
@@ -98,7 +94,8 @@ export default function useChatLogic({
 
   const companionName = useMemo(() => {
     if (!currentCompanion) return "Loading...";
-    if (currentCompanion.custom_name?.trim()) return currentCompanion.custom_name.trim();
+    if (currentCompanion.custom_name?.trim())
+      return currentCompanion.custom_name.trim();
     const model = models.find((m) => m.id === currentCompanion.model_id);
     return model?.name || "Unknown";
   }, [currentCompanion]);
@@ -151,7 +148,9 @@ export default function useChatLogic({
     const now = new Date();
     const hasUnlimited = unlimitedUntil && now < new Date(unlimitedUntil);
     const maxMessages = tierCaps[userTier] || 0;
-    const effectiveLimit = hasUnlimited ? Infinity : maxMessages + bonusMessages;
+    const effectiveLimit = hasUnlimited
+      ? Infinity
+      : maxMessages + bonusMessages;
 
     try {
       const res = await fetch(endpoint, {
@@ -178,7 +177,10 @@ export default function useChatLogic({
 
           if (user?.id && currentCompanion?.companion_id) {
             try {
-              await updateCompanionIntimacy(user.id, currentCompanion.companion_id);
+              await updateCompanionIntimacy(
+                user.id,
+                currentCompanion.companion_id
+              );
             } catch (e) {
               console.error("Failed to update companion intimacy:", e);
             }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { models } from "../../data/models";
 import { supabase } from "../../utils/supabaseClient";
@@ -36,25 +36,32 @@ export default function GuestPreviewWithPricing() {
   const router = useRouter();
   const [userStatus, setUserStatus] = useState("guest");
   const [selectedModel, setSelectedModel] = useState(null);
+  const [sampleModels, setSampleModels] = useState([]);
 
-  // ✅ Memoize sample models to fix hydration error
-  const sampleModels = useMemo(() => {
-    const availableModels = models.filter((m) => m.name !== "Rika");
-    const premiumModels = availableModels.filter((m) => m.label === "premium");
-    const standardModels = availableModels.filter((m) => m.label !== "premium");
+  // ✅ Handle model shuffle client-side to avoid hydration error
+  useEffect(() => {
+    const generateModels = () => {
+      const availableModels = models.filter((m) => m.name !== "Rika");
+      const premiumModels = availableModels.filter((m) => m.label === "premium");
+      const standardModels = availableModels.filter((m) => m.label !== "premium");
 
-    const seed = 456;
-    const shuffledStandard = shuffle(standardModels, seed);
-    let chosenModels = [];
+      const seed = Math.floor(Math.random() * 100000);
+      const shuffledStandard = shuffle(standardModels, seed);
 
-    if (premiumModels.length > 0) {
-      const selectedPremium = shuffle(premiumModels, seed)[0];
-      chosenModels = [selectedPremium, ...shuffledStandard.slice(0, 4)];
-    } else {
-      chosenModels = shuffledStandard.slice(0, 5);
-    }
+      let chosenModels = [];
 
-    return shuffle(chosenModels, seed);
+      if (premiumModels.length > 0) {
+        const selectedPremium = shuffle(premiumModels, seed)[0];
+        chosenModels = [selectedPremium, ...shuffledStandard.slice(0, 4)];
+      } else {
+        chosenModels = shuffledStandard.slice(0, 5);
+      }
+
+      const finalShuffle = shuffle(chosenModels, seed + 99); // final mix
+      setSampleModels(finalShuffle);
+    };
+
+    generateModels();
   }, []);
 
   useEffect(() => {
@@ -111,36 +118,40 @@ export default function GuestPreviewWithPricing() {
       </p>
 
       {/* Companion Card Preview */}
-      <div className="flex justify-center items-end gap-4 mb-12">
-        {sampleModels.map((model, index) => {
-          const rotation = (index - 2) * 8;
-          const isPremium = model.label === "premium";
+      <div className="flex justify-center items-end gap-4 mb-12 min-h-[22rem]">
+        {sampleModels.length === 0 ? (
+          <p className="text-gray-400">Loading models...</p>
+        ) : (
+          sampleModels.map((model, index) => {
+            const rotation = (index - 2) * 8;
+            const isPremium = model.label === "premium";
 
-          return (
-            <div
-              key={model.id}
-              className="transform transition duration-300 hover:scale-105 cursor-pointer relative"
-              style={{ transform: `rotate(${rotation}deg)` }}
-              onClick={() => setSelectedModel(model)}
-            >
-              {isPremium && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-semibold z-10 shadow-md">
-                  Premium
-                </div>
-              )}
-              <img
-                src={model.image}
-                alt={model.name}
-                className={`w-48 h-80 object-cover rounded-xl shadow-lg border-4 ${
-                  isPremium ? "border-yellow-400" : "border-pink-500"
-                } bg-white`}
-              />
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium text-center">
-                {model.name}
-              </p>
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={model.id}
+                className="transform transition duration-300 hover:scale-105 cursor-pointer relative"
+                style={{ transform: `rotate(${rotation}deg)` }}
+                onClick={() => setSelectedModel(model)}
+              >
+                {isPremium && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-semibold z-10 shadow-md">
+                    Premium
+                  </div>
+                )}
+                <img
+                  src={model.image}
+                  alt={model.name}
+                  className={`w-48 h-80 object-cover rounded-xl shadow-lg border-4 ${
+                    isPremium ? "border-yellow-400" : "border-pink-500"
+                  } bg-white`}
+                />
+                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium text-center">
+                  {model.name}
+                </p>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {selectedModel && (

@@ -11,8 +11,6 @@ const useCompanionStore = create((set) => ({
   // Maps to `custom_name` in Supabase
   displayName: "",
 
-  hydrated: false,
-
   // setCurrentCompanion: (companion) => set({ currentCompanion: companion }),
   setCurrentCompanion: (companion) => {
     console.log(
@@ -29,7 +27,6 @@ const useCompanionStore = create((set) => ({
   setSelectedIntimacyArchetype: (archetype) =>
     set({ selectedIntimacyArchetype: archetype }),
   setDisplayName: (value) => set({ displayName: value }),
-  setHydrated: (flag) => set({ hydrated: flag }),
 }));
 
 export default useCompanionStore;
