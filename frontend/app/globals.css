@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --pink: #ec4899;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+a {
+  color: var(--pink);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+/* ---- Fancy border with golden gradient ---- */
+.fancy-border {
+  position: relative;
+  border-radius: 1rem;
+  background: white;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Gradient border with transparent center */
+.fancy-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3px; /* thickness of the gold border */
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #ffd700, #fff2a8, #ffd700);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure the inner content sits above the mask layer */
+.fancy-border > * {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out;
+}
