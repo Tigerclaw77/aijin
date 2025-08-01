@@ -4,11 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true, // ✅ disable image optimization
   },
-  experimental: {
-    css: {
-      lightningCSS: false, // ✅ disable Lightning CSS for Vercel compatibility
-    },
-  },
 };
 
 export default nextConfig;
