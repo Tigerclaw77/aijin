@@ -14,7 +14,7 @@
     "**/netlify.toml": true,
     "**/out": true,
     "**/.next": true,
-    "**/globals.css": true,
+    // "**/globals.css": true,
     // "**/layout.js": true,
     "**/favicon.ico": true,
     "**/README.md": true,

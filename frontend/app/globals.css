@@ -82,6 +82,15 @@ button {
   }
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-black text-white;
+}
+
+
 .animate-fade-in-up {
   animation: fade-in-up 0.4s ease-out;
 }
