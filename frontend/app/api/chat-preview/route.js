@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 console.log("✅ /api/chat endpoint loaded");
 
-export const runtime = "nodejs";AC
+export const runtime = "nodejs";
 
 export async function POST(req) {
   const { message, personalityName, tone, customName, modelName } =
