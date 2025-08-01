@@ -16,7 +16,7 @@
 
 // app/api/daily-intimacy-update/route.js
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { supabase } from "../../../utils/supabaseClient";
