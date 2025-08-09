@@ -1,24 +1,10 @@
-// Requirements for Each Route
-// Each route will:
-// Fetch relevant companion data (joined with messages/gifts if needed)
-// Calculate:
-// messagesToday
-// daysInactive
-// giftList
-// interactionScore (could default to 1.0 unless more logic)
-// Run:
-// js
-// Copy
-// Edit
-// const newVerbal = processVerbalIntimacy(companionState);
-// const newPhysical = processPhysicalIntimacy(companionState);
-// Update Supabase companions table
-
-// app/api/send-message/route.js
-
 import { NextResponse } from 'next/server';
-import { supabase } from '../../../utils/supabaseClient';
-import { processVerbalIntimacy, processPhysicalIntimacy } from '../../../utils/intimacyStateManagerSplit';
+
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
+import {
+  processVerbalIntimacy,
+  processPhysicalIntimacy,
+} from '../../../utils/Intimacy/intimacyStateManagerSplit';
 
 // Utility to count messages sent today
 function countMessagesToday(messages = [], now = new Date()) {
@@ -47,7 +33,7 @@ export async function POST(req) {
   }
 
   // ✅ Step 1: Store message
-  const { error: messageError } = await supabase.from('messages').insert([
+  const { error: messageError } = await supabaseServer.from('messages').insert([
     {
       user_id,
       companion_id,
@@ -59,7 +45,7 @@ export async function POST(req) {
   }
 
   // ✅ Step 2: Fetch companion data
-  const { data: companion, error: companionError } = await supabase
+  const { data: companion, error: companionError } = await supabaseServer
     .from('companions')
     .select('*')
     .eq('id', companion_id)
@@ -70,7 +56,7 @@ export async function POST(req) {
   }
 
   // ✅ Step 3: Fetch recent messages for this companion
-  const { data: messagesToday } = await supabase
+  const { data: messagesToday } = await supabaseServer
     .from('messages')
     .select('created_at')
     .eq('companion_id', companion_id);
@@ -101,7 +87,7 @@ export async function POST(req) {
   });
 
   // ✅ Step 6: Save new values
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseServer
     .from('companions')
     .update({
       verbal_intimacy: updatedVerbal,

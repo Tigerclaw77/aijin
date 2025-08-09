@@ -12,16 +12,43 @@ export default function CharacterCard({
   className = '',
 }) {
   const isPremium = label === 'premium';
+  const isHostess = label === 'hostess';
+  const isClaimed = label === 'claimed';
   const isNiche = label === 'niche';
+
+  const getBorderClasses = () => {
+    if (isPremium) {
+      return 'bg-gradient-to-br from-[#3b0a48] via-[#111] to-[#1a002d] border-pink-400/50 shadow-pink-500/40 hover:shadow-pink-500/60';
+    } else if (isHostess) {
+      return 'bg-gradient-to-br from-[#182b3a] via-[#111] to-[#0c1e2b] border-blue-400/50 shadow-blue-500/30 hover:shadow-blue-500/50';
+    } else if (isClaimed) {
+      return 'bg-gradient-to-br from-[#332500] via-[#111] to-[#1a1000] border-yellow-500/40 shadow-yellow-400/30 hover:shadow-yellow-400/50';
+    } else {
+      return 'bg-[#111] border-white/10';
+    }
+  };
+
+  const getRibbon = () => {
+    if (isPremium) {
+      return { text: 'Premium', bg: 'bg-pink-600' };
+    } else if (isHostess) {
+      return { text: 'Hostess', bg: 'bg-blue-600' };
+    } else if (isClaimed) {
+      return { text: 'Claimed', bg: 'bg-yellow-600' };
+    } else if (isNiche) {
+      return { text: 'Niche', bg: 'bg-purple-600' };
+    }
+    return null;
+  };
+
+  const ribbon = getRibbon();
 
   return (
     <div
       onClick={onClick}
       className={`cursor-pointer rounded-xl overflow-hidden border shadow-md transition-transform relative
         ${isSelected ? 'ring-2 ring-pink-500' : ''}
-        ${isPremium
-          ? 'bg-gradient-to-br from-[#3b0a48] via-[#111] to-[#1a002d] border-pink-400/50 shadow-pink-500/40 hover:shadow-pink-500/60'
-          : 'bg-[#111] border-white/10'}
+        ${getBorderClasses()}
         hover:scale-[1.03] ${className}`}
     >
       {/* IMAGE */}
@@ -52,11 +79,11 @@ export default function CharacterCard({
         </div>
       )}
 
-      {/* PREMIUM RIBBON */}
-      {isPremium && (
+      {/* RIBBON TAG */}
+      {ribbon && (
         <div className="absolute top-0 right-0 z-30">
-          <div className="bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-bl-md shadow-md">
-            Premium
+          <div className={`${ribbon.bg} text-white text-xs font-bold px-2 py-1 rounded-bl-md shadow-md`}>
+            {ribbon.text}
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import personalities from "../data/personalities";
 
 export default function SampleChatModal({ isOpen, onClose, personalityId, avatarName }) {

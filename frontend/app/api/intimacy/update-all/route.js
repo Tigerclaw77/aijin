@@ -1,7 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
-import { processDailyIntimacy } from "../../../../utils/intimacyStateManagerUnified";
+import { createClient } from '@supabaseServer/supabaseServer-js';
 
-const supabase = createClient(
+import { processDailyIntimacy } from '../../../../utils/Intimacy/intimacyStateManagerUnified';
+
+const supabaseServer = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
@@ -12,23 +13,23 @@ export async function POST(req) {
     const { user_id } = body;
 
     if (!user_id) {
-      console.log("❌ Missing user_id in request");
-      return new Response(JSON.stringify({ error: "Missing user_id" }), {
+      console.log('❌ Missing user_id in request');
+      return new Response(JSON.stringify({ error: 'Missing user_id' }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const { data: companions, error } = await supabase
-      .from("companions")
-      .select("*")
-      .eq("user_id", user_id);
+    const { data: companions, error } = await supabaseServer
+      .from('companions')
+      .select('*')
+      .eq('user_id', user_id);
 
     if (error) {
-      console.error("❌ Supabase error:", error.message);
-      return new Response(JSON.stringify({ error: "Supabase fetch failed" }), {
+      console.error('❌ Supabase error:', error.message);
+      return new Response(JSON.stringify({ error: 'Supabase fetch failed' }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -40,9 +41,7 @@ export async function POST(req) {
         ? new Date(companion.last_interaction)
         : new Date(now.getTime() - 86400000); // fallback 1 day ago
 
-      const daysInactive = Math.floor(
-        (now - lastInteraction) / (1000 * 60 * 60 * 24)
-      );
+      const daysInactive = Math.floor((now - lastInteraction) / (1000 * 60 * 60 * 24));
 
       const companionState = {
         rank: companion.intimacy_rank,
@@ -63,14 +62,14 @@ export async function POST(req) {
     }
 
     const updatePromises = updates.map(({ companion_id, intimacy_internal }) =>
-      supabase
-        .from("companions")
+      supabaseServer
+        .from('companions')
         .update({
           intimacy_internal,
           last_decay_check: now.toISOString(),
           messages_today: 0,
         })
-        .eq("companion_id", companion_id)
+        .eq('companion_id', companion_id)
     );
 
     const results = await Promise.all(updatePromises);
@@ -78,27 +77,24 @@ export async function POST(req) {
 
     if (failed.length > 0) {
       console.error(
-        "❌ Some updates failed:",
+        '❌ Some updates failed:',
         failed.map((f) => f.error)
       );
-      return new Response(JSON.stringify({ error: "Some updates failed" }), {
+      return new Response(JSON.stringify({ error: 'Some updates failed' }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(
-      JSON.stringify({ success: true, updated: updates.length }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: true, updated: updates.length }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (err) {
-    console.error("❌ Top-level API error:", err);
-    return new Response(JSON.stringify({ error: "Server error" }), {
+    console.error('❌ Top-level API error:', err);
+    return new Response(JSON.stringify({ error: 'Server error' }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }

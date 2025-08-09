@@ -1,5 +1,6 @@
-import blogEntries from "../../../data/blogs";
 import { notFound } from "next/navigation";
+
+import blogEntries from "../../../data/blogs";
 
 export function generateStaticParams() {
   return blogEntries.map((entry) => ({

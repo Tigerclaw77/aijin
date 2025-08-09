@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { testMemoryToSupabase } from "../../data/memory/testMemory";
 
 export default function TestMemoryPage() {

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full text-sm text-gray-400 text-center py-6 bg-black border-t border-gray-800">
+    <footer className="w-full mt-auto text-sm text-gray-400 text-center py-6 bg-black border-t border-gray-800">
       <p>&copy; {new Date().getFullYear()} Aijin.ai. All rights reserved.</p>
 
       <div className="mt-2 flex justify-center flex-wrap gap-3 text-gray-400 text-xs">

@@ -1,7 +1,7 @@
 // /app/api/companions/breakup/route.js
-import { supabase } from "../../../../utils/supabaseClient";
-import { sendSMSConfirmation } from "../../../../utils/sendSMSConfirmation";
-import { sendEmailConfirmation } from "../../../../utils/sendEmailConfirmation";
+import { supabaseServer } from "../../../../utils/Supabase/supabaseServerClient";
+import { sendSMSConfirmation } from "../../../../utils/Confirmation/sendSMSConfirmation";
+import { sendEmailConfirmation } from "../../../../utils/Confirmation/sendEmailConfirmation";
 
 export async function POST(req) {
   try {
@@ -12,7 +12,7 @@ export async function POST(req) {
     }
 
     // Step 1: Set status to pending_delete
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseServer
       .from("companions")
       .update({ status: "pending_delete" })
       .eq("id", companion_id)

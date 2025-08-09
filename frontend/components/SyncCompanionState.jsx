@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { supabase } from "../utils/supabaseClient";
+import { supabase } from "../utils/Supabase/supabaseClient";
 import useAuthStore from "../store/authStore";
 import useCompanionStore from "../store/companionStore";
 import personalities from "../data/personalities";
@@ -44,7 +44,7 @@ export default function SyncCompanionState() {
       if (profileError || !profile?.selected_companion_id) {
         console.warn(
           "⛔ Missing selected_companion_id in profile:",
-          profileError
+          profileError,
         );
         return;
       }
@@ -68,7 +68,7 @@ export default function SyncCompanionState() {
 
       // ✅ Step 3: Set related state (personality, avatar, intimacy, archetype, name)
       const personality = personalities.find(
-        (p) => p.id === companion.personality_id
+        (p) => p.id === companion.personality_id,
       );
       if (personality) {
         setSelectedPersonality(personality);
@@ -97,7 +97,7 @@ export default function SyncCompanionState() {
       }
 
       const intimacyArchetype = intimacyArchetypes.find(
-        (a) => a.name === companion.intimacy_archetype
+        (a) => a.name === companion.intimacy_archetype,
       );
       if (intimacyArchetype) {
         setSelectedIntimacyArchetype(intimacyArchetype);

@@ -22,7 +22,7 @@ export const models = [
     image: "/avatars/rika.png",
     description:
       "Street-smart and stylish, into cars, games, and low-key mischief.",
-    label: "standard",
+    label: "hostess",
   },
   {
     id: "m4",
@@ -214,5 +214,80 @@ export const models = [
     description:
       "Elegant and poised, with a calm warmth that makes every word feel personal.",
     label: "premium",
+  },
+  {
+    id: "sarah",
+    name: "Sarah",
+    ethnicity: "White",
+    image: "/avatars/sarah.png",
+    description:
+      "Alluring and confident, with a glint of mischief in her eyes.",
+    label: "premium",
+  },
+  {
+    id: "heather",
+    name: "Heather",
+    ethnicity: "White",
+    image: "/avatars/heather.png",
+    description:
+      "Fun-loving and free-spirited, always ready to light up the moment.",
+    label: "premium",
+  },
+  {
+    id: "brooke",
+    name: "Brooke",
+    ethnicity: "White",
+    image: "/avatars/brooke.png",
+    description: "Radiates beachy charm and girl-next-door warmth.",
+    label: "standard",
+  },
+  {
+    id: "vivian",
+    name: "Vivian",
+    ethnicity: "East Asian",
+    image: "/avatars/vivian.png",
+    description: "Polished and radiant — confident with a velvet-soft smile.",
+    label: "premium",
+  },
+  {
+    id: "kim",
+    name: "Kim",
+    ethnicity: "East Asian",
+    image: "/avatars/kim.png",
+    description:
+      "Sweet and effortlessly natural, the girl next door in every sense.",
+    label: "standard",
+  },
+  {
+    id: "allison",
+    name: "Allison",
+    ethnicity: "Blonde (White)",
+    image: "/avatars/allison.png",
+    description: "Sunny and approachable, with a heart as open as her smile.",
+    label: "standard",
+  },
+  {
+    id: "sun",
+    name: "Sun",
+    ethnicity: "Korean",
+    image: "/avatars/sun.png",
+    description: "Confident and radiant, with an effortless coolness.",
+    label: "standard",
+  },
+  {
+    id: "lynn",
+    name: "Lynn",
+    ethnicity: "Korean",
+    image: "/avatars/lynn.png",
+    description: "Smart and sincere, she brings calm to any storm.",
+    label: "standard",
+  },
+  {
+    id: "hyejin",
+    name: "Hyejin",
+    ethnicity: "Korean",
+    image: "/avatars/hyejin.png",
+    description: "Balanced and thoughtful, with a love for nature and books.",
+    label: "standard",
   },
 ];

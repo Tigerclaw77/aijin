@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+
 import useCompanionStore from "../../store/companionStore";
 import { standardTiers, elitePackages, haremTier } from "../../data/pricing";
 

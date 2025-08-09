@@ -1,6 +1,6 @@
 export default function UnlockButton({ type, onClick }) {
   const label =
-    type === "verbal" ? "Unlock Verbal Intimacy" : "Unlock Physical Intimacy";
+    type === "verbal" ? "Unlock Emotional Intimacy" : "Unlock Physical Intimacy";
 
   return (
     <button

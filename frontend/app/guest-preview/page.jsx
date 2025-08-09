@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { models } from "../../data/models";
-import { supabase } from "../../utils/supabaseClient";
 
+import { models } from "../../data/models";
+import { supabase } from "../../utils/Supabase/supabaseClient";
 import { standardTiers, elitePackages, haremTier } from "../../data/pricing";
 import StandardTierCard from "../../components/StandardTierCard";
 import EliteTierCard from "../../components/EliteTierCard";
 import HaremTierCard from "../../components/HaremTierCard";
-import { getModelAssignments } from "../../utils/getModelAssignments";
+import { getModelAssignments } from "../../utils/Companion/getModelAssignments";
 import ModelModal from "../../components/ModelModal";
 
 // Seeded deterministic shuffle
@@ -42,8 +42,12 @@ export default function GuestPreviewWithPricing() {
   useEffect(() => {
     const generateModels = () => {
       const availableModels = models.filter((m) => m.name !== "Rika");
-      const premiumModels = availableModels.filter((m) => m.label === "premium");
-      const standardModels = availableModels.filter((m) => m.label !== "premium");
+      const premiumModels = availableModels.filter(
+        (m) => m.label === "premium",
+      );
+      const standardModels = availableModels.filter(
+        (m) => m.label !== "premium",
+      );
 
       const seed = Math.floor(Math.random() * 100000);
       const shuffledStandard = shuffle(standardModels, seed);
@@ -82,7 +86,7 @@ export default function GuestPreviewWithPricing() {
         .eq("is_deleted", false);
 
       setUserStatus(
-        !companions || companions.length === 0 ? "noCompanion" : "hasCompanion"
+        !companions || companions.length === 0 ? "noCompanion" : "hasCompanion",
       );
     };
 

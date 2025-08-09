@@ -1,19 +1,22 @@
-console.log("✅ /api/chat/route.js module-guest loaded");
-
+console.log("✅ /api/chat-preview/route.js module-guest loaded");
 
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "https://aijin.ai",
+    "X-Title": "Aijin AI Companion",
+  },
 });
 
-console.log("✅ /api/chat endpoint loaded");
+console.log("✅ /api/chat-preview endpoint loaded");
 
 export const runtime = "nodejs";
 
 export async function POST(req) {
-  const { message, personalityName, tone, customName, modelName } =
-    await req.json();
+  const { message, personalityName, tone, customName, modelName } = await req.json();
 
   const companionName = customName || modelName || "your AI companion";
   const userPrompt = message?.slice(0, 500) || "Hi";
@@ -37,7 +40,7 @@ Every reply should sound grounded and sincere.
 
   try {
     const chatResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "openrouter/openai/gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -46,11 +49,10 @@ Every reply should sound grounded and sincere.
       temperature: 0.87,
     });
 
-    const reply =
-      chatResponse.choices[0]?.message?.content || "Let's keep chatting!";
+    const reply = chatResponse.choices[0]?.message?.content || "Let's keep chatting!";
     return new Response(JSON.stringify({ reply }), { status: 200 });
   } catch (err) {
-    console.error("OpenAI error:", err);
+    console.error("OpenRouter error:", err);
     return new Response(
       JSON.stringify({
         reply: "Sorry, I'm having trouble responding right now.",

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import PersonalityCard from "./PersonalityCard";
 
 export default function PersonalitySelection({

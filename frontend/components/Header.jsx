@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "../utils/supabaseClient";
+
+import { supabase } from "../utils/Supabase/supabaseClient";
 import useAuthStore from "../store/authStore";
 
 export default function Header() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import useAuthStore from "../../store/authStore";
 
 const tokenPacks = [

@@ -1,8 +1,9 @@
 "use client";
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
+
+import { supabaseServer } from "../../utils/Supabase/supabaseServerClient";
 import useAuthStore from "../../store/authStore";
 
 export default function AuthTest() {
@@ -13,7 +14,7 @@ export default function AuthTest() {
     const getSession = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await supabaseServer.auth.getSession();
 
       if (session?.user) {
         setUser(session.user);
@@ -27,7 +28,7 @@ export default function AuthTest() {
     getSession();
 
     // Optional: Listen for changes
-    const { data: listener } = supabase.auth.onAuthStateChange(
+    const { data: listener } = supabaseServer.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
           setUser(session.user);
@@ -50,7 +51,7 @@ export default function AuthTest() {
           <button
             className="bg-red-500 text-white px-4 py-2 rounded"
             onClick={async () => {
-              await supabase.auth.signOut();
+              await supabaseServer.auth.signOut();
               clearUser();
             }}
           >
@@ -62,7 +63,7 @@ export default function AuthTest() {
           onSubmit={async (e) => {
             e.preventDefault();
             const email = e.target.email.value;
-            await supabase.auth.signInWithOtp({ email });
+            await supabaseServer.auth.signInWithOtp({ email });
             alert("Check your email for the magic link");
           }}
         >

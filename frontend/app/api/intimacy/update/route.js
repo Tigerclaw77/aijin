@@ -1,11 +1,112 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { processDailyIntimacy } from "../../../../utils/intimacyStateManagerUnified";
+// import { NextResponse } from 'next/server';
+// import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// import { superviseIntimacyXP } from '../../../../utils/Intimacy/superviseIntimacyXP';
+// import { getIntimacyRank } from '../../../../utils/Intimacy/intimacyRankEngine';
+
+// const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+// export async function POST(req) {
+//   try {
+//     const body = await req.json();
+//     const { user_id, companion_id } = body;
+
+//     if (!user_id || !companion_id) {
+//       console.error('❌ Missing user_id or companion_id', {
+//         user_id,
+//         companion_id,
+//       });
+//       return NextResponse.json(
+//         { error: 'Missing user_id or companion_id' },
+//         { status: 400, headers: { 'Cache-Control': 'no-store' } }
+//       );
+//     }
+
+//     const { data: companion, error } = await supabase
+//       .from('companions')
+//       .select('*')
+//       .eq('companion_id', companion_id)
+//       .eq('user_id', user_id)
+//       .single();
+
+//     if (error || !companion) {
+//       console.error('❌ Could not find companion', error);
+//       return NextResponse.json(
+//         { error: 'Could not fetch companion' },
+//         { status: 404, headers: { 'Cache-Control': 'no-store' } }
+//       );
+//     }
+
+//     const now = new Date();
+//     const isoNow = now.toISOString();
+
+//     const verbalDelta = superviseIntimacyXP(companion, 0, 'verbal', now);
+//     const physicalDelta = superviseIntimacyXP(companion, 0, 'physical', now);
+
+//     const newVerbalXP = (companion.verbal_xp || 0) + verbalDelta;
+//     const newPhysicalXP = (companion.physical_xp || 0) + physicalDelta;
+
+//     let newVerbalRank = getIntimacyRank(newVerbalXP);
+//     let newPhysicalRank = getIntimacyRank(newPhysicalXP);
+
+//     // 🧱 Enforce intimacy caps (verbal_intimacy/physical_intimacy are difficulty levels)
+//     if (companion.verbal_intimacy === 1 && newVerbalRank >= 2) {
+//       newVerbalRank = 1.99;
+//     }
+
+//     if (companion.physical_intimacy === 1 && newPhysicalRank >= 2) {
+//       newPhysicalRank = 1.99;
+//     }
+
+//     const { error: updateError } = await supabase
+//       .from('companions')
+//       .update({
+//         verbal_xp: newVerbalXP,
+//         physical_xp: newPhysicalXP,
+//         verbal_level: newVerbalRank,
+//         physical_level: newPhysicalRank,
+//         last_decay_check: isoNow,
+//       })
+//       .eq('companion_id', companion_id)
+//       .eq('user_id', user_id);
+
+//     if (updateError) {
+//       console.error('❌ Supabase update error:', updateError);
+//       return NextResponse.json(
+//         { error: 'Failed to update intimacy' },
+//         { status: 500, headers: { 'Cache-Control': 'no-store' } }
+//       );
+//     }
+
+//     return NextResponse.json(
+//       {
+//         success: true,
+//         verbalDelta,
+//         physicalDelta,
+//         newVerbalXP,
+//         newPhysicalXP,
+//         newVerbalRank,
+//         newPhysicalRank,
+//       },
+//       { status: 200, headers: { 'Cache-Control': 'no-store' } }
+//     );
+//   } catch (err) {
+//     console.error('❌ Top-level failure in intimacy update:', err);
+//     return NextResponse.json(
+//       { error: 'Server error' },
+//       { status: 500, headers: { 'Cache-Control': 'no-store' } }
+//     );
+//   }
+// }
+
+
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+import { superviseIntimacyXP } from '../../../../utils/Intimacy/superviseIntimacyXP';
+import { getIntimacyRank, getXPThresholdForLevel } from '../../../../utils/Intimacy/intimacyRankEngine';
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 export async function POST(req) {
   try {
@@ -13,95 +114,113 @@ export async function POST(req) {
     const { user_id, companion_id } = body;
 
     if (!user_id || !companion_id) {
-      console.error("❌ Missing user_id or companion_id", { user_id, companion_id });
+      console.error('❌ Missing user_id or companion_id', { user_id, companion_id });
       return NextResponse.json(
-        { error: "Missing user_id or companion_id" },
-        { status: 400, headers: { "Cache-Control": "no-store" } }
+        { error: 'Missing user_id or companion_id' },
+        { status: 400, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 
-    const { data: companion, error } = await supabase
-      .from("companions")
-      .select("*")
-      .eq("companion_id", companion_id)
-      .eq("user_id", user_id)
-      .maybeSingle();
+    // Fetch companion with user and companion ID
+    const { data: companion, error: companionError } = await supabase
+      .from('companions')
+      .select('*, profiles(subscription_tier)')
+      .eq('companion_id', companion_id)
+      .eq('user_id', user_id)
+      .single();
 
-    if (error || !companion) {
-      console.error("❌ Could not find companion", error);
+    if (companionError || !companion) {
+      console.error('❌ Could not find companion', companionError);
       return NextResponse.json(
-        { error: "Could not fetch companion" },
-        { status: 404, headers: { "Cache-Control": "no-store" } }
+        { error: 'Could not fetch companion' },
+        { status: 404, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 
     const now = new Date();
     const isoNow = now.toISOString();
 
-    const lastInteraction = companion.last_interaction
-      ? new Date(companion.last_interaction)
-      : new Date(now.getTime() - 86400000); // 1 day ago fallback
+    // Get XP deltas
+    const verbalDelta = superviseIntimacyXP(companion, 0, 'verbal', now);
+    const physicalDelta = superviseIntimacyXP(companion, 0, 'physical', now);
 
-    const daysInactive = Math.floor(
-      (now - lastInteraction) / (1000 * 60 * 60 * 24)
-    );
+    const newVerbalXP = (companion.verbal_xp || 0) + verbalDelta;
+    const newPhysicalXP = (companion.physical_xp || 0) + physicalDelta;
 
-    const companionState = {
-      rank: companion.intimacy_rank,
-      currentIntimacy: companion.intimacy_internal,
-      isPaused: companion.is_paused,
-      daysInactive,
-      messagesToday: companion.messages_today || 0,
-      interactionScore: 1.0,
-      giftList: companion.gifts || [],
+    // === CAP LOGIC ===
+
+    // Step 1: Get intimacy caps (from companion)
+    const intimacyVerbalCap = companion.verbal_intimacy ?? 1;
+    const intimacyPhysicalCap = companion.physical_intimacy ?? 1;
+
+    // Step 2: Get subscription-based caps
+    const tier = companion.profiles?.subscription_tier?.toLowerCase?.() || 'free';
+
+    const tierCaps = {
+      free: 2,
+      friend: 3,
+      crush: 4,
+      girlfriend: 5,
+      waifu: 5,
     };
 
-    const newIntimacy = processDailyIntimacy(companionState, now);
+    const tierVerbalCap = tierCaps[tier] ?? 2;
+    const tierPhysicalCap = tierCaps[tier] ?? 2;
 
-    if (typeof newIntimacy !== "number" || newIntimacy < 0) {
-      console.error("❌ Invalid intimacy value computed:", newIntimacy);
-      return NextResponse.json(
-        { error: "Invalid intimacy result" },
-        { status: 500, headers: { "Cache-Control": "no-store" } }
-      );
-    }
+    // Step 3: Effective caps = min of both
+    const effectiveVerbalCap = Math.min(intimacyVerbalCap, tierVerbalCap);
+    const effectivePhysicalCap = Math.min(intimacyPhysicalCap, tierPhysicalCap);
 
-    console.log("🧠 New intimacy value:", newIntimacy);
-    console.log("📝 Companion before update:", {
-      companion_id,
-      user_id,
-      intimacy_internal: newIntimacy,
-      last_decay_check: isoNow,
-      messages_today: 0,
-    });
+    // Step 4: Compute XP limits based on cap
+    const maxVerbalXP = getXPThresholdForLevel(effectiveVerbalCap + 1) - 0.0001;
+    const maxPhysicalXP = getXPThresholdForLevel(effectivePhysicalCap + 1) - 0.0001;
 
+    // Step 5: Clamp XP to capped limits
+    const cappedVerbalXP = Math.min(newVerbalXP, maxVerbalXP);
+    const cappedPhysicalXP = Math.min(newPhysicalXP, maxPhysicalXP);
+
+    // Step 6: Convert XP to level
+    const newVerbalRank = getIntimacyRank(cappedVerbalXP);
+    const newPhysicalRank = getIntimacyRank(cappedPhysicalXP);
+
+    // === UPDATE DATABASE ===
     const { error: updateError } = await supabase
-      .from("companions")
+      .from('companions')
       .update({
-        intimacy_internal: newIntimacy,
+        verbal_xp: cappedVerbalXP,
+        physical_xp: cappedPhysicalXP,
+        verbal_level: newVerbalRank,
+        physical_level: newPhysicalRank,
         last_decay_check: isoNow,
-        messages_today: 0,
       })
-      .eq("companion_id", companion_id)
-      .eq("user_id", user_id);
+      .eq('companion_id', companion_id)
+      .eq('user_id', user_id);
 
     if (updateError) {
-      console.error("❌ Supabase update error:", updateError);
+      console.error('❌ Supabase update error:', updateError);
       return NextResponse.json(
-        { error: "Failed to update intimacy" },
-        { status: 500, headers: { "Cache-Control": "no-store" } }
+        { error: 'Failed to update intimacy' },
+        { status: 500, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 
     return NextResponse.json(
-      { success: true, newIntimacy },
-      { status: 200, headers: { "Cache-Control": "no-store" } }
+      {
+        success: true,
+        verbalDelta,
+        physicalDelta,
+        newVerbalXP: cappedVerbalXP,
+        newPhysicalXP: cappedPhysicalXP,
+        newVerbalRank,
+        newPhysicalRank,
+      },
+      { status: 200, headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (err) {
-    console.error("❌ Top-level failure in intimacy update:", err);
+    console.error('❌ Top-level failure in intimacy update:', err);
     return NextResponse.json(
-      { error: "Server error" },
-      { status: 500, headers: { "Cache-Control": "no-store" } }
+      { error: 'Server error' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 }

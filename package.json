@@ -1,10 +1,21 @@
 {
   "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.54.0",
     "next": "^14.1.4",
+    "react-hot-toast": "^2.5.2",
     "twilio": "^5.7.3",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
-    "@netlify/next": "^1.4.9"
+    "@eslint/js": "^9.32.0",
+    "@netlify/next": "^1.4.9",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-next": "^0.0.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2"
   }
 }

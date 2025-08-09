@@ -1,20 +1,25 @@
-"use client";
+// hooks/useChatLogic.js
+'use client';
 
-import { useEffect, useRef, useState, useMemo } from "react";
-import useGreetingMessage from "../hooks/useGreetingMessage";
-import { intimacyArchetypes } from "../data/intimacy";
-import { models } from "../data/models";
-import { updateCompanionIntimacy } from "../utils/intimacyApiClient";
-import { getUserTier, getGiftUnlocks } from "../utils/chatUtils";
-import { supabase } from "../utils/supabaseClient";
-import { fetchGiftInventory } from "../utils/fetchGiftInventory";
-import { applyGiftToCompanion } from "../utils/applyGiftToCompanion";
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { toast } from 'react-hot-toast';
+
+import useGreetingMessage from '../hooks/useGreetingMessage';
+import useAuthStore from '../store/authStore';
+import { intimacyArchetypes } from '../data/intimacy';
+import { models } from '../data/models';
+import { updateCompanionIntimacy } from '../utils/Intimacy/intimacyApiClient';
+import { getUserTier, getGiftUnlocks } from '../utils/Chat-Gifts/chatUtils';
+// import { supabase } from '../utils/Supabase/supabaseClient'; // ❌ not needed anymore
+import { updateUserTokenBalance } from '../utils/Chat-Gifts/updateUserTokenBalance';
+import { fetchGiftInventory } from '../utils/Chat-Gifts/fetchGiftInventory';
+import { applyGiftToCompanion } from '../utils/Chat-Gifts/applyGiftToCompanion';
 
 const fallbackPersonality = {
-  id: "fallback",
-  name: "Miyu",
-  tone: "Sweet & playful",
-  memoryLength: "Short (preview only)",
+  id: 'fallback',
+  name: 'Miyu',
+  tone: 'Sweet & playful',
+  memoryLength: 'Short (preview only)',
   sampleQuotes: [],
 };
 
@@ -29,11 +34,12 @@ export default function useChatLogic({
   user,
   currentCompanion,
   selectedPersonality,
-  setCurrentCompanion = () => {},
   setActiveGift = () => {},
+  setShowGifts = () => {},
+  giftPanelRef = null,
 }) {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [questionCount, setQuestionCount] = useState(0);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,47 +47,33 @@ export default function useChatLogic({
   const [memoryEnabled, setMemoryEnabled] = useState(null);
   const [bonusMessages, setBonusMessages] = useState(0);
   const [unlimitedUntil, setUnlimitedUntil] = useState(null);
+  const [chatContext, setChatContext] = useState(null);
+
+  // NEW: gift apply locks
+  const [isApplyingGift, setIsApplyingGift] = useState(false);
+  const [applyingGiftId, setApplyingGiftId] = useState(null);
 
   const messagesEndRef = useRef(null);
-  const cacheKeyRef = useRef("chat_guest");
+  const cacheKeyRef = useRef('chat_guest');
+  const restoredRef = useRef(false);
 
   const isGuest = !user || !currentCompanion?.companion_id;
-  const endpoint = isGuest ? "/api/chat-preview" : "/api/chat";
+  const endpoint = isGuest ? '/api/chat-preview' : '/api/chat';
 
   useEffect(() => {
     if (user?.id && currentCompanion?.companion_id) {
       cacheKeyRef.current = `chat_${user.id}_${currentCompanion.companion_id}`;
     } else {
-      cacheKeyRef.current = "chat_guest";
+      cacheKeyRef.current = 'chat_guest';
     }
   }, [user, currentCompanion]);
 
   useEffect(() => {
     if (!user?.id) return;
     fetchGiftInventory(user.id).then((inventory) => {
-      console.log("🎁 Current Gift Inventory:", inventory);
+      console.log('🎁 Current Gift Inventory:', inventory);
     });
   }, [user?.id]);
-
-  // useEffect(() => {
-  //   const hydrateCompanion = async () => {
-  //     if (!user?.id || currentCompanion?.companion_id) return;
-
-  //     const { data, error } = await supabase
-  //       .from("companions")
-  //       .select("*")
-  //       .eq("user_id", user.id)
-  //       .order("created_at", { ascending: false })
-  //       .limit(1)
-  //       .maybeSingle();
-
-  //     if (data && !error) {
-  //       setCurrentCompanion(data);
-  //     }
-  //   };
-
-  //   hydrateCompanion();
-  // }, [user, currentCompanion, setCurrentCompanion]);
 
   const personality = useMemo(() => {
     return (
@@ -93,11 +85,10 @@ export default function useChatLogic({
   }, [selectedPersonality, currentCompanion]);
 
   const companionName = useMemo(() => {
-    if (!currentCompanion) return "Loading...";
-    if (currentCompanion.custom_name?.trim())
-      return currentCompanion.custom_name.trim();
+    if (!currentCompanion) return 'Loading...';
+    if (currentCompanion.custom_name?.trim()) return currentCompanion.custom_name.trim();
     const model = models.find((m) => m.id === currentCompanion.model_id);
-    return model?.name || "Unknown";
+    return model?.name || 'Unknown';
   }, [currentCompanion]);
 
   const matchedArchetype = useMemo(() => {
@@ -109,28 +100,35 @@ export default function useChatLogic({
   }, [currentCompanion]);
 
   const userTier = useMemo(() => {
-    return isGuest ? "sample" : getUserTier(user?.profile);
+    if (user?.profile?.is_admin) return 'premium';
+    return isGuest ? 'sample' : getUserTier(user?.profile);
   }, [user, isGuest]);
 
   const giftUnlocks = useMemo(() => getGiftUnlocks(user?.profile), [user]);
 
   const reachedLimit = useMemo(() => {
-    const bobaActive = giftUnlocks?.bobaActive;
-    const baseLimit = tierCaps[userTier] || 0;
-    const extra =
-      (giftUnlocks?.tea || 0) * 10 +
-      (giftUnlocks?.coffee || 0) * 25 +
-      bonusMessages;
-    const effective = bobaActive ? Infinity : baseLimit + extra;
-    return questionCount >= effective;
-  }, [questionCount, userTier, giftUnlocks, bonusMessages]);
+    const now = new Date();
+    const hasUnlimited = unlimitedUntil && now < new Date(unlimitedUntil);
+    const maxMessages = tierCaps[userTier] || 0;
+    const effectiveLimit = hasUnlimited ? Infinity : maxMessages + bonusMessages;
+
+    return !user?.profile?.is_admin && questionCount >= effectiveLimit;
+  }, [questionCount, bonusMessages, unlimitedUntil, user?.profile, userTier]);
 
   const sendMessage = async () => {
-    if (!input.trim() || inputDisabled || !personality || reachedLimit) return;
+    if (!input.trim() || inputDisabled || !personality) return;
 
-    const userMessage = { id: Date.now(), text: input.trim(), sender: "user" };
+    if (!user?.profile?.is_admin && reachedLimit) {
+      setShowGifts(true);
+      setTimeout(() => {
+        giftPanelRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      return;
+    }
+
+    const userMessage = { id: Date.now(), text: input.trim(), sender: 'user' };
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setInput('');
     setIsLoading(true);
     setIsTyping(false);
 
@@ -148,52 +146,79 @@ export default function useChatLogic({
     const now = new Date();
     const hasUnlimited = unlimitedUntil && now < new Date(unlimitedUntil);
     const maxMessages = tierCaps[userTier] || 0;
-    const effectiveLimit = hasUnlimited
-      ? Infinity
-      : maxMessages + bonusMessages;
+    const effectiveLimit = hasUnlimited ? Infinity : maxMessages + bonusMessages;
 
     try {
       const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const rawText = await res.text();
-      const data = JSON.parse(rawText);
-      const replyText = data.reply || "Let's keep chatting!";
+
+      if (!res.ok) {
+        console.error('❌ Server error:', res.status, rawText);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'ai',
+            text: '⚠️ Something went wrong. Please try again in a moment.',
+          },
+        ]);
+        setIsTyping(false);
+        setIsLoading(false);
+        return;
+      }
+
+      let replyText = "Let's keep chatting!";
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(rawText);
+        replyText = parsed?.reply || replyText;
+      } catch (err) {
+        console.error('❌ JSON parse error:', err.message, rawText);
+        replyText = '⚠️ Sorry, I had trouble understanding the response.';
+      }
+
       const typingDuration = Math.max(1000, replyText.length * 30);
 
       setTimeout(() => {
         setIsTyping(true);
         setTimeout(async () => {
-          setMessages((prev) => [
-            ...prev,
-            { id: Date.now() + 1, text: replyText, sender: "ai" },
-          ]);
+          setMessages((prev) => [...prev, { id: Date.now() + 1, text: replyText, sender: 'ai' }]);
           setIsTyping(false);
           setIsLoading(false);
           setQuestionCount((prev) => prev + 1);
 
+          if (parsed) {
+            setChatContext({
+              moodGreeting: parsed.moodGreeting || null,
+              memoryFacts: parsed.memoryFacts || [],
+              verbalLevel: parsed.verbalLevel ?? null,
+              physicalLevel: parsed.physicalLevel ?? null,
+              subscriptionTier: parsed.subscriptionTier || 'free',
+            });
+          }
+
           if (user?.id && currentCompanion?.companion_id) {
             try {
-              await updateCompanionIntimacy(
-                user.id,
-                currentCompanion.companion_id
-              );
+              await updateCompanionIntimacy(user.id, currentCompanion.companion_id);
             } catch (e) {
-              console.error("Failed to update companion intimacy:", e);
+              console.error('Failed to update companion intimacy:', e);
             }
           }
 
-          if (questionCount + 1 >= effectiveLimit) {
+          if (!user?.profile?.is_admin && questionCount + 1 >= effectiveLimit) {
             setTimeout(() => {
               setMessages((prev) => [
                 ...prev,
                 {
                   id: Date.now() + 2,
-                  sender: "ai",
-                  text: "__MESSAGE_LIMIT_REACHED__",
+                  sender: 'ai',
+                  text: '__MESSAGE_LIMIT_REACHED__',
                 },
               ]);
               setInputDisabled(true);
@@ -202,13 +227,13 @@ export default function useChatLogic({
         }, typingDuration);
       }, delayBeforeTyping);
     } catch (err) {
-      console.error("Chat error:", err);
+      console.error('Chat error:', err);
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 3,
-          sender: "ai",
-          text: "⚠️ Sorry, I’m having trouble responding right now. Please try again later.",
+          sender: 'ai',
+          text: '⚠️ Sorry, I’m having trouble responding right now. Please try again later.',
         },
       ]);
       setIsTyping(false);
@@ -216,66 +241,86 @@ export default function useChatLogic({
     }
   };
 
+  // 🔥 FINAL gift handler with optimistic update + toasts + spam lock
   const handleGiftUsed = async (gift) => {
     if (!user || !currentCompanion) return;
 
-    const userTokens = user.profile?.tokens || 0;
+    const userTokens = user.profile?.tokens ?? 0;
     if (userTokens < gift.price) {
-      console.warn("⛔ Not enough tokens");
+      toast.error('Not enough tokens');
       return;
     }
 
-    const effect = gift.effect || {};
-
-    if (effect.extraMessages) {
-      setBonusMessages((prev) => prev + effect.extraMessages);
+    if (isApplyingGift) {
+      toast('Hold on—still sending the previous gift…');
+      return;
     }
 
+    setIsApplyingGift(true);
+    setApplyingGiftId(gift.id);
+
+    // Local effects (extra messages / unlimited / emotion)
+    const effect = gift.effect || {};
+    if (effect.extraMessages) setBonusMessages((prev) => prev + effect.extraMessages);
     if (effect.unlimited) {
       const hours = effect.unlimited;
       const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
       setUnlimitedUntil(expiresAt);
+      console.log('🎁 Unlimited Until:', expiresAt.toLocaleString());
     }
-
     if (effect.emotion) {
       const emotionLine = {
-        cozy: "Mmm... you always know how to warm my heart. 🍵",
-        alert: "You’re trying to keep me up late, aren’t you? ☕",
-        joy: "Boba?! You angel!! 🧋💕",
-        excited: "Let’s GO. I’m feeling hyped! 🥤",
+        cozy: 'Mmm... you always know how to warm my heart. 🍵',
+        alert: 'You’re trying to keep me up late, aren’t you? ☕',
+        joy: 'Boba?! You angel!! 🧋💕',
+        excited: 'Let’s GO. I’m feeling hyped! 🥤',
       }[effect.emotion];
-
       setMessages((prev) => [
         ...prev,
-        {
-          id: Date.now() + 5,
-          text: emotionLine || "Aww, thank you for the gift!",
-          sender: "ai",
-        },
+        { id: Date.now() + 5, text: emotionLine || 'Aww, thank you for the gift!', sender: 'ai' },
       ]);
     }
 
+    // Optimistic token update
+    const oldBalance = userTokens;
+    const newBalance = oldBalance - gift.price;
+    useAuthStore.getState().updateUserProfile({ tokens: newBalance });
+
     try {
-      await applyGiftToCompanion({
+      // Apply XP + log gift
+      const result = await applyGiftToCompanion({
         user_id: user.id,
         companion_id: currentCompanion.companion_id,
-        giftName: gift.name,
+        giftName: gift.id,
       });
-      console.log(`✅ Gift XP applied for ${gift.name}`);
-    } catch (error) {
-      console.error("❌ Failed to apply gift XP:", error);
-    }
+      if (!result?.success) throw new Error(result?.error || 'Gift XP apply failed');
 
-    setActiveGift(gift.name);
+      // Persist deduction
+      await updateUserTokenBalance(user.id, newBalance);
+
+      setActiveGift(gift.id);
+      toast.success(`Sent ${gift.id}! -${gift.price} tokens`);
+      console.log(`🪙 Token deducted: -${gift.price} → ${newBalance}`);
+    } catch (err) {
+      // Rollback on failure
+      useAuthStore.getState().updateUserProfile({ tokens: oldBalance });
+      toast.error(`Couldn't send ${gift.id}. No tokens deducted.`);
+      console.error('❌ Gift application failed:', err);
+    } finally {
+      setIsApplyingGift(false);
+      setApplyingGiftId(null);
+    }
   };
 
+  // Cache restore/save
   useEffect(() => {
     const cached = localStorage.getItem(cacheKeyRef.current);
     if (cached) {
       try {
         setMessages(JSON.parse(cached));
+        restoredRef.current = true;
       } catch (e) {
-        console.error("Failed to parse cached messages", e);
+        console.error('Failed to parse cached messages', e);
       }
     }
   }, []);
@@ -299,15 +344,16 @@ export default function useChatLogic({
     matchedArchetype,
     memoryEnabled,
     setMessages,
+    restored: restoredRef.current,
   });
 
   useEffect(() => {
     if (!user || !currentCompanion?.companion_id) return;
     const checkMemory = async () => {
       try {
-        const res = await fetch("/api/check-memory", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/check-memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_id: user.id,
             companion_id: currentCompanion.companion_id,
@@ -316,7 +362,7 @@ export default function useChatLogic({
         const data = await res.json();
         setMemoryEnabled(data.memoryEnabled);
       } catch (err) {
-        console.error("Failed to check memory status:", err);
+        console.error('Failed to check memory status:', err);
         setMemoryEnabled(false);
       }
     };
@@ -324,7 +370,7 @@ export default function useChatLogic({
   }, [user, currentCompanion]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
   return {
@@ -340,11 +386,15 @@ export default function useChatLogic({
     memoryEnabled,
     companionName,
     handleGiftUsed,
+    // expose gift lock state to GiftPanel
+    isApplyingGift,
+    applyingGiftId,
     userTier,
     giftUnlocks,
     bonusMessages,
     unlimitedUntil,
     questionCount,
     cacheKeyRef,
+    chatContext,
   };
 }

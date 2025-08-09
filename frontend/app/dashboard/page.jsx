@@ -2,18 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../utils/supabaseClient";
+
+import { supabase } from "../../utils/Supabase/supabaseClient";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import useAuthStore from "../../store/authStore";
 import useCompanionStore from "../../store/companionStore";
 import { models } from "../../data/models";
 import personalities from "../../data/personalities";
 import { intimacyArchetypes } from "../../data/intimacy";
+
 import MeterBar from "../../components/MeterBar";
+import {
+    getTotalGiftBonus,
+    getGiftEffectList,
+    getEffectiveLevel,
+  } from "../../utils/Chat-Gifts/giftUtils";
+import { getIntimacyRank } from "../../utils/Intimacy/intimacyRankEngine";
 
 const UnlockButton = ({ type, onClick }) => {
   const label =
-    type === "verbal" ? "Unlock Verbal Intimacy" : "Unlock Physical Intimacy";
+    type === "verbal" ? "Unlock Emotional Intimacy" : "Unlock Physical Intimacy";
 
   return (
     <button
@@ -24,6 +32,23 @@ const UnlockButton = ({ type, onClick }) => {
     </button>
   );
 };
+
+const ComingSoonModal = ({ onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow text-center">
+      <h2 className="text-xl font-bold mb-2">Coming Soon!</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+        This feature is under construction. Please check back later.
+      </p>
+      <button
+        onClick={onClose}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+);
 
 export default function DashboardPage() {
   return (
@@ -45,6 +70,7 @@ function DashboardContent() {
   const [nameInput, setNameInput] = useState("");
   const [showVerbalUnlock, setShowVerbalUnlock] = useState(null);
   const [showPhysicalUnlock, setShowPhysicalUnlock] = useState(null);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -52,10 +78,14 @@ function DashboardContent() {
     setDisplayName(user.profile?.display_name || user.email || "");
 
     const fetchCompanions = async () => {
-      const { data, error } = await supabase
+      const { data: companions, error } = await supabase
         .from("companions")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .eq("soft_deleted", false)
+        .eq("archived", false)
+        .order("created_at", { ascending: true });
 
       if (error) {
         console.error("Error fetching companions:", error);
@@ -64,14 +94,22 @@ function DashboardContent() {
         return;
       }
 
-      const enriched = data.map((comp) => {
+      const enriched = companions.map((comp) => {
         const modelData = models.find((m) => m.id === comp.model_id);
         const personalityData = personalities.find(
-          (p) => p.id === comp.personality_id
+          (p) => p.id === comp.personality_id,
         );
         const archetypeData = intimacyArchetypes.find(
-          (a) => a.name === comp.intimacy_archetype
+          (a) => a.name === comp.intimacy_archetype,
         );
+
+        const giftList = getGiftEffectList(comp.gifts || []);
+        const giftXPVerbal = getTotalGiftBonus(giftList, new Date(), "verbal");
+        const giftXPPhysical = getTotalGiftBonus(giftList, new Date(), "physical");
+
+        const effectiveVerbalLevel = getEffectiveLevel(comp.verbal_xp, giftXPVerbal);
+        const effectivePhysicalLevel = getEffectiveLevel(comp.physical_xp, giftXPPhysical);
+
 
         return {
           ...comp,
@@ -83,22 +121,33 @@ function DashboardContent() {
             ? `${personalityData.label} (${personalityData.id})`
             : "Not set",
           intimacy_archetype: archetypeData?.name || "Not set",
+
           verbal_level: comp.verbal_level ?? 1,
+          verbal_intimacy: comp.verbal_intimacy ?? 1,
           verbal_xp: comp.verbal_xp ?? 0,
           verbal_max_xp: 100,
+
           physical_level: comp.physical_level ?? 1,
+          physical_intimacy: comp.physical_intimacy ?? 1,
           physical_xp: comp.physical_xp ?? 0,
           physical_max_xp: 100,
+
           relationship_level: comp.relationship_level ?? 1,
           relationship_xp: comp.relationship_xp ?? 0,
           relationship_max_xp: 100,
+
+          giftList,
+          giftXPVerbal,
+          giftXPPhysical,
+          effectiveVerbalLevel,
+          effectivePhysicalLevel,
         };
       });
 
       const uniqueById = {};
       const deduped = enriched.filter((c) => {
-        if (uniqueById[c.id]) return false;
-        uniqueById[c.id] = true;
+        if (uniqueById[c.companion_id]) return false;
+        uniqueById[c.companion_id] = true;
         return true;
       });
 
@@ -139,13 +188,13 @@ function DashboardContent() {
         <h2 className="text-xl font-bold mb-4">Folders</h2>
         <ul className="space-y-2">
           <li>
-            <button className="hover:underline">Favorites</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Favorites</button>
           </li>
           <li>
-            <button className="hover:underline">Sleeping Beauties</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Sleeping Beauties</button>
           </li>
           <li>
-            <button className="hover:underline">Recent Break-ups</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Recent Break-ups</button>
           </li>
         </ul>
       </aside>
@@ -193,7 +242,7 @@ function DashboardContent() {
               + Create New Companion
             </button>
             <button
-              onClick={() => router.push("/settings")}
+              onClick={() => setShowComingSoon(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
             >
               Account Settings
@@ -248,13 +297,15 @@ function DashboardContent() {
                   />
 
                   <MeterBar
-                    label="Verbal Intimacy"
+                    label="Emotional Intimacy"
                     icon="🗣️"
                     companion_id={companion.companion_id}
                     type="verbal"
                     level={companion.verbal_level}
                     currentXP={companion.verbal_xp}
                     maxXP={companion.verbal_max_xp}
+                    giftXP={companion.giftXPVerbal}
+                    effectiveLevel={companion.effectiveVerbalLevel}
                     color="#6366F1"
                     locked={companion.verbal_intimacy === 1}
                   />
@@ -268,12 +319,14 @@ function DashboardContent() {
 
                   <MeterBar
                     label="Physical Intimacy"
-                    icon="🧵"
+                    icon="💞"
                     companion_id={companion.companion_id}
                     type="physical"
                     level={companion.physical_level}
                     currentXP={companion.physical_xp}
                     maxXP={companion.physical_max_xp}
+                    giftXP={companion.giftXPPhysical}
+                    effectiveLevel={companion.effectivePhysicalLevel}
                     color="#F472B6"
                     locked={companion.physical_intimacy === 1}
                   />
@@ -296,10 +349,7 @@ function DashboardContent() {
                       Chat
                     </button>
                     <button
-                      onClick={() => {
-                        setCurrentCompanion(companion);
-                        router.push("/edit");
-                      }}
+                      onClick={() => setShowComingSoon(true)}
                       className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded"
                     >
                       Edit
@@ -308,9 +358,7 @@ function DashboardContent() {
 
                   <div className="mt-2 text-right">
                     <button
-                      onClick={() =>
-                        router.push(`/album/${companion.companion_id}`)
-                      }
+                      onClick={() => setShowComingSoon(true)}
                       className="text-xs text-blue-400 hover:underline"
                     >
                       📷 View Album
@@ -322,6 +370,8 @@ function DashboardContent() {
           )}
         </div>
       </main>
+
+      {showComingSoon && <ComingSoonModal onClose={() => setShowComingSoon(false)} />}
     </div>
   );
 }

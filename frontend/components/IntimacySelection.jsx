@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { intimacyArchetypes } from "../data/intimacy";
 
 export default function IntimacySelection({
@@ -10,9 +11,9 @@ export default function IntimacySelection({
 }) {
   return (
     <div className="flex flex-col gap-10 mb-10">
-      {/* Verbal Intimacy */}
+      {/* Emotional Intimacy */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Verbal Intimacy</h2>
+        <h2 className="text-xl font-semibold mb-2">Emotional Intimacy</h2>
         <div className="relative h-12 flex items-center">
           <div className="absolute left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-yellow-400 to-red-500 rounded" />
           {[1, 2, 3, 4, 5].map((val) => (

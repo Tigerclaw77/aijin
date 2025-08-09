@@ -1,5 +1,5 @@
-import { supabase } from "../../../../utils/supabaseClient";
-import { logCompanionArchive } from "../../../../utils/logCompanionArchive";
+import { supabaseServer } from "../../../../utils/Supabase/supabaseServerClient";
+import { logCompanionArchive } from "../../../../utils/Companion/logCompanionArchive";
 
 export async function POST(req) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req) {
     }
 
     // ✅ Get current companion data
-    const { data: companion, error: fetchError } = await supabase
+    const { data: companion, error: fetchError } = await supabaseServer
       .from("companions")
       .select("*")
       .eq("id", companion_id)
@@ -30,7 +30,7 @@ export async function POST(req) {
     await logCompanionArchive(companion);
 
     // ✅ Step 2: Update status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseServer
       .from("companions")
       .update({ status: "deleted" })
       .eq("id", companion_id)

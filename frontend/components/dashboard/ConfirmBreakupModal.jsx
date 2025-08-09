@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { sendBreakupRequest } from "../../utils/breakupClient";
+
+import { sendBreakupRequest } from "../../utils/Breakup/breakupClient";
 
 export default function ConfirmBreakupModal({ isOpen, onClose, companion }) {
   const [loading, setLoading] = useState(false);

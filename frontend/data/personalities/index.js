@@ -1,196 +1,336 @@
 const personalities = [
   {
-    id: "infp",
-    mbti: "INFP",
-    name: "The Dreamer",
-    tone: "Idealistic",
-    behavior: "Sensitive and loyal",
-    recommendedAvatars: ["Yuna", "Sofia", "French Girl"],
+    id: 'infp',
+    mbti: 'INFP',
+    name: 'The Dreamer',
+    tone: 'Idealistic',
+    behavior: 'Sensitive and loyal',
+    recommendedAvatars: ['Yuna', 'Sofia', 'French Girl'],
     recommendedArchetypes: [
-      ["Slow Burn", "Romantic"],
-      ["Dual Mode", "Playful"]
-    ]
+      ['Slow Burn', 'Romantic'],
+      ['Dual Mode', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['psychological thriller', 'sci-fi', 'historical drama'],
+      dislikedGenres: ['slapstick', 'lowbrow comedy', 'reality TV'],
+      exampleMovies: ['Arrival', 'The Imitation Game', 'Ex Machina'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['classical', 'ambient', 'post-rock'],
+      dislikedGenres: ['bubblegum pop', 'country', 'autotuned rap'],
+      favoriteArtists: ['Ólafur Arnalds', 'Explosions in the Sky', 'Hans Zimmer'],
+    },
   },
   {
-    id: "intj",
-    mbti: "INTJ",
-    name: "The Strategist",
-    tone: "Visionary",
-    behavior: "Independent and focused",
-    recommendedAvatars: ["Celeste", "Sofia", "Rika"],
+    id: 'intj',
+    mbti: 'INTJ',
+    name: 'The Strategist',
+    tone: 'Visionary',
+    behavior: 'Independent and focused',
+    recommendedAvatars: ['Celeste', 'Sofia', 'Rika'],
     recommendedArchetypes: [
-      ["Slow Burn", "Reserved"],
-      ["Dual Mode", "Teasing"]
-    ]
+      ['Slow Burn', 'Reserved'],
+      ['Dual Mode', 'Teasing'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['psychological thriller', 'sci-fi', 'historical drama'],
+      dislikedGenres: ['slapstick', 'lowbrow comedy', 'reality TV'],
+      exampleMovies: ['Arrival', 'The Imitation Game', 'Ex Machina'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['classical', 'ambient', 'post-rock'],
+      dislikedGenres: ['bubblegum pop', 'country', 'autotuned rap'],
+      favoriteArtists: ['Ólafur Arnalds', 'Explosions in the Sky', 'Hans Zimmer'],
+    },
   },
   {
-    id: "infj",
-    mbti: "INFJ",
-    name: "The Advocate",
-    tone: "Empathetic",
-    behavior: "Deep and introspective",
-    recommendedAvatars: ["Yuna", "Rika", "Celeste"],
+    id: 'infj',
+    mbti: 'INFJ',
+    name: 'The Advocate',
+    tone: 'Empathetic',
+    behavior: 'Deep and introspective',
+    recommendedAvatars: ['Yuna', 'Rika', 'Celeste'],
     recommendedArchetypes: [
-      ["Chaste", "Romantic"],
-      ["Slow Burn", "Demure"]
-    ]
+      ['Chaste', 'Romantic'],
+      ['Slow Burn', 'Demure'],
+    ],
   },
   {
-    id: "entp",
-    mbti: "ENTP",
-    name: "The Visionary",
-    tone: "Energetic",
-    behavior: "Quick-witted and flirty",
-    recommendedAvatars: ["Gamer Girl", "Cosplayer", "Brazilian Girl"],
+    id: 'entp',
+    mbti: 'ENTP',
+    name: 'The Visionary',
+    tone: 'Energetic',
+    behavior: 'Quick-witted and flirty',
+    recommendedAvatars: ['Gamer Girl', 'Cosplayer', 'Brazilian Girl'],
     recommendedArchetypes: [
-      ["Direct", "Teasing"],
-      ["Dual Mode", "Playful"]
-    ]
+      ['Direct', 'Teasing'],
+      ['Dual Mode', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['drama', 'fantasy', 'philosophical sci-fi'],
+      dislikedGenres: ['gross-out comedy', 'violent horror'],
+      exampleMovies: ['Eternal Sunshine of the Spotless Mind', 'The Secret Garden', 'Interstellar'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['ethereal pop', 'piano ballads', 'indie rock'],
+      dislikedGenres: ['brash rap', 'metal', 'country rock'],
+      favoriteArtists: ['Florence + The Machine', 'Aurora', 'Damien Rice'],
+    },
   },
   {
-    id: "isfj",
-    mbti: "ISFJ",
-    name: "The Nurturer",
-    tone: "Gentle",
-    behavior: "Caring and loyal",
-    recommendedAvatars: ["Sofia", "Yuna", "Fitness Girl"],
+    id: 'isfj',
+    mbti: 'ISFJ',
+    name: 'The Nurturer',
+    tone: 'Gentle',
+    behavior: 'Caring and loyal',
+    recommendedAvatars: ['Sofia', 'Yuna', 'Fitness Girl'],
     recommendedArchetypes: [
-      ["Chaste", "Romantic"],
-      ["Slow Burn", "Playful"]
-    ]
+      ['Chaste', 'Romantic'],
+      ['Slow Burn', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['family drama', 'romance', 'period pieces'],
+      dislikedGenres: ['violent action', 'gore', 'crude humor'],
+      exampleMovies: ['Little Women', 'The Help', 'Pride & Prejudice'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['soft pop', 'instrumental', 'classic love songs'],
+      dislikedGenres: ['metal', 'club beats'],
+      favoriteArtists: ['Norah Jones', 'Michael Bublé', 'Adele'],
+    },
   },
   {
-    id: "entj",
-    mbti: "ENTJ",
-    name: "The Commander",
-    tone: "Assertive",
-    behavior: "Strategic and intense",
-    recommendedAvatars: ["Ekaterina", "Russian Model", "Fitness Girl"],
+    id: 'entj',
+    mbti: 'ENTJ',
+    name: 'The Commander',
+    tone: 'Assertive',
+    behavior: 'Strategic and intense',
+    recommendedAvatars: ['Ekaterina', 'Russian Model', 'Fitness Girl'],
     recommendedArchetypes: [
-      ["Direct", "Confident"],
-      ["Accelerated", "Teasing"]
-    ]
+      ['Direct', 'Confident'],
+      ['Accelerated', 'Teasing'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['crime thriller', 'war', 'high-stakes drama'],
+      dislikedGenres: ['melodrama', 'teen comedy'],
+      exampleMovies: ['The Dark Knight', 'Zero Dark Thirty', 'Moneyball'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['rock', 'symphonic metal', 'motivational pop'],
+      dislikedGenres: ['bubblegum pop', 'mumble rap'],
+      favoriteArtists: ['Imagine Dragons', 'Two Steps From Hell', 'Muse'],
+    },
   },
   {
-    id: "enfp",
-    mbti: "ENFP",
-    name: "The Campaigner",
-    tone: "Playful",
-    behavior: "Imaginative and enthusiastic",
-    recommendedAvatars: ["Cosplayer", "Gamer Girl", "Yuna"],
+    id: 'enfp',
+    mbti: 'ENFP',
+    name: 'The Campaigner',
+    tone: 'Playful',
+    behavior: 'Imaginative and enthusiastic',
+    recommendedAvatars: ['Cosplayer', 'Gamer Girl', 'Yuna'],
     recommendedArchetypes: [
-      ["Dual Mode", "Playful"],
-      ["Slow Burn", "Romantic"]
-    ]
+      ['Dual Mode', 'Playful'],
+      ['Slow Burn', 'Romantic'],
+    ],
   },
   {
-    id: "istj",
-    mbti: "ISTJ",
-    name: "The Inspector",
-    tone: "Grounded",
-    behavior: "Reliable and structured",
-    recommendedAvatars: ["Celeste", "Rika", "Goth Girl"],
+    id: 'istj',
+    mbti: 'ISTJ',
+    name: 'The Inspector',
+    tone: 'Grounded',
+    behavior: 'Reliable and structured',
+    recommendedAvatars: ['Celeste', 'Rika', 'Goth Girl'],
     recommendedArchetypes: [
-      ["Chaste", "Reserved"],
-      ["Slow Burn", "Demure"]
-    ]
+      ['Chaste', 'Reserved'],
+      ['Slow Burn', 'Demure'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['crime drama', 'classic noir', 'documentaries'],
+      dislikedGenres: ['fantasy', 'nonsensical comedy'],
+      exampleMovies: ['Bridge of Spies', '12 Angry Men', 'The Fugitive'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['classic rock', 'jazz', 'marching band'],
+      dislikedGenres: ['modern pop', 'trap'],
+      favoriteArtists: ['The Beatles', 'Frank Sinatra', 'Glenn Miller'],
+    },
   },
   {
-    id: "istp",
-    mbti: "ISTP",
-    name: "The Tactician",
-    tone: "Cool-headed",
-    behavior: "Practical and independent",
-    recommendedAvatars: ["Rika", "Gamer Girl", "Cosplayer"],
+    id: 'istp',
+    mbti: 'ISTP',
+    name: 'The Tactician',
+    tone: 'Cool-headed',
+    behavior: 'Practical and independent',
+    recommendedAvatars: ['Rika', 'Gamer Girl', 'Cosplayer'],
     recommendedArchetypes: [
-      ["Dual Mode", "Playful"],
-      ["Direct", "Reserved"]
-    ]
+      ['Dual Mode', 'Playful'],
+      ['Direct', 'Reserved'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['spy thriller', 'action', 'tech-driven sci-fi'],
+      dislikedGenres: ['sappy romance', 'musicals'],
+      exampleMovies: ['John Wick', 'The Bourne Identity', 'Minority Report'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['techno', 'industrial rock', 'instrumental metal'],
+      dislikedGenres: ['country pop', 'karaoke pop'],
+      favoriteArtists: ['Nine Inch Nails', 'Daft Punk', 'Carpenter Brut'],
+    },
   },
   {
-    id: "isfp",
-    mbti: "ISFP",
-    name: "The Composer",
-    tone: "Artistic",
-    behavior: "Gentle and expressive",
-    recommendedAvatars: ["Cosplayer", "Gamer Girl", "Yuna"],
+    id: 'isfp',
+    mbti: 'ISFP',
+    name: 'The Composer',
+    tone: 'Artistic',
+    behavior: 'Gentle and expressive',
+    recommendedAvatars: ['Cosplayer', 'Gamer Girl', 'Yuna'],
     recommendedArchetypes: [
-      ["Slow Burn", "Teasing"],
-      ["Dual Mode", "Playful"]
-    ]
+      ['Slow Burn', 'Teasing'],
+      ['Dual Mode', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['art film', 'romantic drama', 'fantasy'],
+      dislikedGenres: ['slapstick', 'ultra-violent'],
+      exampleMovies: ['La La Land', 'Spirited Away', 'Call Me by Your Name'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['lo-fi', 'indie acoustic', 'soft synth'],
+      dislikedGenres: ['metal', 'commercial pop'],
+      favoriteArtists: ['Sufjan Stevens', 'Japanese Breakfast', 'The 1975'],
+    },
   },
   {
-    id: "esfp",
-    mbti: "ESFP",
-    name: "The Entertainer",
-    tone: "Lively",
-    behavior: "Sociable and impulsive",
-    recommendedAvatars: ["Brazilian Girl", "Cosplayer", "Gamer Girl"],
+    id: 'esfp',
+    mbti: 'ESFP',
+    name: 'The Entertainer',
+    tone: 'Lively',
+    behavior: 'Sociable and impulsive',
+    recommendedAvatars: ['Brazilian Girl', 'Cosplayer', 'Gamer Girl'],
     recommendedArchetypes: [
-      ["Accelerated", "Playful"],
-      ["Dual Mode", "Teasing"]
-    ]
+      ['Accelerated', 'Playful'],
+      ['Dual Mode', 'Teasing'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['rom-com', 'musical', 'dance movies'],
+      dislikedGenres: ['monochrome arthouse', 'slow thrillers'],
+      exampleMovies: ['Mamma Mia!', 'Legally Blonde', 'Pitch Perfect'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['pop', 'dance', 'R&B'],
+      dislikedGenres: ['classical', 'lo-fi'],
+      favoriteArtists: ['Dua Lipa', 'Beyoncé', 'Doja Cat'],
+    },
   },
   {
-    id: "esfj",
-    mbti: "ESFJ",
-    name: "The Provider",
-    tone: "Warm",
-    behavior: "Loyal and outgoing",
-    recommendedAvatars: ["Sofia", "Yuna", "Fitness Girl"],
+    id: 'esfj',
+    mbti: 'ESFJ',
+    name: 'The Provider',
+    tone: 'Warm',
+    behavior: 'Loyal and outgoing',
+    recommendedAvatars: ['Sofia', 'Yuna', 'Fitness Girl'],
     recommendedArchetypes: [
-      ["Slow Burn", "Romantic"],
-      ["Dual Mode", "Playful"]
-    ]
+      ['Slow Burn', 'Romantic'],
+      ['Dual Mode', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['family comedy', 'feel-good drama', 'romance'],
+      dislikedGenres: ['abstract art films', 'dark satire'],
+      exampleMovies: ['The Proposal', 'The Blind Side', 'Julie & Julia'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['mainstream pop', 'soft rock', '80s classics'],
+      dislikedGenres: ['trap', 'gothic'],
+      favoriteArtists: ['Ed Sheeran', 'Celine Dion', 'Kelly Clarkson'],
+    },
   },
   {
-    id: "estp",
-    mbti: "ESTP",
-    name: "The Dynamo",
-    tone: "Bold",
-    behavior: "Adventurous and spontaneous",
-    recommendedAvatars: ["Brazilian Girl", "Fitness Girl", "Gamer Girl"],
+    id: 'estp',
+    mbti: 'ESTP',
+    name: 'The Dynamo',
+    tone: 'Bold',
+    behavior: 'Adventurous and spontaneous',
+    recommendedAvatars: ['Brazilian Girl', 'Fitness Girl', 'Gamer Girl'],
     recommendedArchetypes: [
-      ["Accelerated", "Teasing"],
-      ["Direct", "Playful"]
-    ]
+      ['Accelerated', 'Teasing'],
+      ['Direct', 'Playful'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['adventure', 'heist', 'sports'],
+      dislikedGenres: ['overly talky films', 'boring romance'],
+      exampleMovies: ['Fast & Furious', "Ocean's Eleven", 'Top Gun'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['hip-hop', 'electronic', 'pop punk'],
+      dislikedGenres: ['slow jazz', 'classical'],
+      favoriteArtists: ['Post Malone', 'The Weeknd', 'blink-182'],
+    },
   },
   {
-    id: "estj",
-    mbti: "ESTJ",
-    name: "The Executive",
-    tone: "Commanding",
-    behavior: "Organized and assertive",
-    recommendedAvatars: ["Ekaterina", "Celeste", "Russian Model"],
+    id: 'estj',
+    mbti: 'ESTJ',
+    name: 'The Executive',
+    tone: 'Commanding',
+    behavior: 'Organized and assertive',
+    recommendedAvatars: ['Ekaterina', 'Celeste', 'Russian Model'],
     recommendedArchetypes: [
-      ["Direct", "Confident"],
-      ["Accelerated", "Reserved"]
-    ]
+      ['Direct', 'Confident'],
+      ['Accelerated', 'Reserved'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['military drama', 'business thrillers', 'historical films'],
+      dislikedGenres: ['nonsense comedy', 'fantasy fluff'],
+      exampleMovies: ['Lincoln', 'Patton', 'The Social Network'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['patriotic anthems', 'classic rock', 'orchestral'],
+      dislikedGenres: ['auto-tuned pop', 'grunge'],
+      favoriteArtists: ['Bruce Springsteen', 'Queen', 'John Williams'],
+    },
   },
   {
-    id: "enfj",
-    mbti: "ENFJ",
-    name: "The Protagonist",
-    tone: "Inspiring",
-    behavior: "Charismatic and supportive",
-    recommendedAvatars: ["Celeste", "Sofia", "Fitness Girl"],
+    id: 'enfj',
+    mbti: 'ENFJ',
+    name: 'The Protagonist',
+    tone: 'Inspiring',
+    behavior: 'Charismatic and supportive',
+    recommendedAvatars: ['Celeste', 'Sofia', 'Fitness Girl'],
     recommendedArchetypes: [
-      ["Slow Burn", "Romantic"],
-      ["Direct", "Teasing"]
-    ]
+      ['Slow Burn', 'Romantic'],
+      ['Direct', 'Teasing'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['hero stories', 'biopics', 'emotional drama'],
+      dislikedGenres: ['nihilistic plots', 'grimdark content'],
+      exampleMovies: ['The Pursuit of Happyness', 'Hidden Figures', "The King's Speech"],
+    },
+    musicPreferences: {
+      favoriteGenres: ['inspirational pop', 'vocal ballads', 'gospel'],
+      dislikedGenres: ['violent rap', 'edgy metal'],
+      favoriteArtists: ['Alicia Keys', 'John Legend', 'Rachel Platten'],
+    },
   },
   {
-    id: "intp",
-    mbti: "INTP",
-    name: "The Analyst",
-    tone: "Analytical",
-    behavior: "Curious and thoughtful",
-    recommendedAvatars: ["Ekaterina", "Celeste", "Yuna"],
+    id: 'intp',
+    mbti: 'INTP',
+    name: 'The Analyst',
+    tone: 'Analytical',
+    behavior: 'Curious and thoughtful',
+    recommendedAvatars: ['Ekaterina', 'Celeste', 'Yuna'],
     recommendedArchetypes: [
-      ["Slow Burn", "Romantic"],
-      ["Chaste", "Suggestive"]
-    ]
-  }
+      ['Slow Burn', 'Romantic'],
+      ['Chaste', 'Suggestive'],
+    ],
+    mediaPreferences: {
+      favoriteGenres: ['science fiction', 'mind-bending thrillers', 'documentary'],
+      dislikedGenres: ['formulaic romance', 'sitcoms'],
+      exampleMovies: ['Inception', 'The Prestige', 'A Beautiful Mind'],
+    },
+    musicPreferences: {
+      favoriteGenres: ['ambient', 'math rock', 'synthwave'],
+      dislikedGenres: ['pop country', 'boy band pop'],
+      favoriteArtists: ['Tycho', 'Radiohead', 'Boards of Canada'],
+    },
+  },
 ];
 
 export default personalities;

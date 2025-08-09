@@ -3,16 +3,18 @@ export const runtime = "nodejs";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+
+import IntimacySelection from "../components/IntimacySelection";
+import useCompanionStore from "../store/companionStore";
+import { saveCompanionDataToSupabase } from "../utils/Companion/saveCompanionData";
+import { supabase } from "../utils/Supabase/supabaseClient";
+import { intimacyArchetypes } from "../data/intimacy";
+
 import CharacterCard from "./CharacterCard";
 import PersonalityCard from "./PersonalityCard";
 import SampleChatModal from "./SampleChatModal";
 import PersonalitySelection from "./PersonalitySelection";
-import IntimacySelection from "../components/IntimacySelection";
 import SummaryModal from "./SummaryModal";
-import useCompanionStore from "../store/companionStore";
-import { saveCompanionDataToSupabase } from "../utils/saveCompanionData";
-import { supabase } from "../utils/supabaseClient";
-import { intimacyArchetypes } from "../data/intimacy";
 
 const mbtiAxes = [
   {
@@ -148,7 +150,7 @@ export default function CreateCompanion() {
   };
 
   const filteredPersonalities = personalities.filter((p) =>
-    applyMbtiFilter(p.mbti)
+    applyMbtiFilter(p.mbti),
   );
 
   const initials = customName

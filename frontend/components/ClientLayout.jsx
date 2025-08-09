@@ -19,5 +19,9 @@ export default function ClientLayout({ children }) {
     console.log("🧠 user?.id =", user?.id);
   }, [user]);
 
-  return <>{children}</>;
+  return (
+    <div className="flex flex-col min-h-screen h-full">
+      {children}
+    </div>
+  );
 }

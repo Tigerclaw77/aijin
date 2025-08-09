@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+
 import { intimacyArchetypes } from "../data/intimacy";
-import { saveCompanionDataToSupabase } from "../utils/saveCompanionData";
+import { saveCompanionDataToSupabase } from "../utils/Companion/saveCompanionData";
 
 export default function SummaryModal({
   show,
