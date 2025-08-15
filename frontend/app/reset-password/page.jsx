@@ -1,11 +1,11 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { supabaseServer } from "../../utils/Supabase/supabaseServerClient";
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
 
 export default function ResetPasswordPage() {
-  const [newPassword, setNewPassword] = useState("");
+  const [newPassword, setNewPassword] = useState('');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
       setError(error.message);
     } else {
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push('/login'), 2000);
     }
   };
 
@@ -33,10 +33,7 @@ export default function ResetPasswordPage() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
       />
-      <button
-        className="bg-pink-600 text-white px-4 py-2 rounded"
-        onClick={handleSubmit}
-      >
+      <button className="bg-pink-600 text-white px-4 py-2 rounded" onClick={handleSubmit}>
         Update Password
       </button>
       {error && <p className="text-red-600 mt-2">{error}</p>}

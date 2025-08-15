@@ -1,6 +1,6 @@
 // backend/memory.js
 
-import { supabaseServer } from "../frontend/utils/Supabase/supabaseServerClient";
+import { supabaseServer } from "../shared/Supabase/supabaseServerClient";
 
 /**
  * Save fact-based memory for a companion.

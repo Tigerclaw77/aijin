@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 
-import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
+import { supabaseServer } from '../../../../utils/Supabase/supabaseServerClient.js';
 import {
   processVerbalIntimacy,
   processPhysicalIntimacy,
-} from '../../../utils/Intimacy/intimacyStateManagerSplit';
+} from '../../../utils/Intimacy/intimacyStateManagerSplit.js';
 
 // Utility to count messages sent today
 function countMessagesToday(messages = [], now = new Date()) {
   const today = now.toISOString().split('T')[0];
-  return messages.filter((msg) => msg.created_at.startsWith(today)).length;
+  return messages.filter((m) => String(m.created_at || '').startsWith(today)).length;
 }
 
 // Utility to calculate days since last interaction
@@ -48,15 +48,15 @@ export async function POST(req) {
   const { data: companion, error: companionError } = await supabaseServer
     .from('companions')
     .select('*')
-    .eq('id', companion_id)
+    .eq('companion_id', companion_id) // use companion_id consistently
     .single();
 
   if (companionError || !companion) {
     return NextResponse.json({ error: 'Companion not found' }, { status: 404 });
   }
 
-  // ✅ Step 3: Fetch recent messages for this companion
-  const { data: messagesToday } = await supabaseServer
+  // ✅ Step 3: Fetch recent messages for this companion (only created_at)
+  const { data: messagesToday = [] } = await supabaseServer
     .from('messages')
     .select('created_at')
     .eq('companion_id', companion_id);
@@ -66,16 +66,16 @@ export async function POST(req) {
   // ✅ Step 4: Build companionState object
   const now = new Date();
   const companionState = {
-    rank: 3, // fallback — or derive from companion.tier if needed
+    rank: 3, // fallback seed
     isPaused: companion.is_paused ?? false,
-    currentIntimacy: companion.verbal_intimacy || 0,
-    daysInactive: getDaysInactive(companion.updated_at || companion.created_at),
+    currentIntimacy: companion.verbal_intimacy || 0, // seed; overwritten per stat below
+    daysInactive: getDaysInactive(companion.updated_at || companion.created_at || now),
     messagesToday: messagesCount,
     interactionScore: estimateInteractionScore(),
-    giftList: [], // TODO: pull recent gifts if needed
+    giftList: [], // pull recent gifts if needed
   };
 
-  // ✅ Step 5: Calculate updated intimacy
+  // ✅ Step 5: Calculate updated intimacy using your legacy engines
   const updatedVerbal = processVerbalIntimacy({
     ...companionState,
     currentIntimacy: companion.verbal_intimacy || 0,
@@ -94,7 +94,7 @@ export async function POST(req) {
       physical_intimacy: updatedPhysical,
       updated_at: now.toISOString(),
     })
-    .eq('id', companion_id);
+    .eq('companion_id', companion_id); // consistent key
 
   if (updateError) {
     return NextResponse.json({ error: 'Failed to update intimacy' }, { status: 500 });

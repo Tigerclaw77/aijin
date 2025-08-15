@@ -1,56 +1,56 @@
-"use client";
-export const runtime = "nodejs";
+'use client';
+export const runtime = 'nodejs';
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
 
-import IntimacySelection from "../components/IntimacySelection";
-import useCompanionStore from "../store/companionStore";
-import { saveCompanionDataToSupabase } from "../utils/Companion/saveCompanionData";
-import { supabase } from "../utils/Supabase/supabaseClient";
-import { intimacyArchetypes } from "../data/intimacy";
+import IntimacySelection from '../components/IntimacySelection';
+import useCompanionStore from '../store/companionStore';
+import { saveCompanionDataToSupabase } from '../utils/Companion/saveCompanionData';
+import { supabase } from '../utils/Supabase/supabaseClient';
+import { intimacyArchetypes } from '../data/intimacy';
 
-import CharacterCard from "./CharacterCard";
-import PersonalityCard from "./PersonalityCard";
-import SampleChatModal from "./SampleChatModal";
-import PersonalitySelection from "./PersonalitySelection";
-import SummaryModal from "./SummaryModal";
+import CharacterCard from './CharacterCard';
+import PersonalityCard from './PersonalityCard';
+import SampleChatModal from './SampleChatModal';
+import PersonalitySelection from './PersonalitySelection';
+import SummaryModal from './SummaryModal';
 
 const mbtiAxes = [
   {
-    key: "E",
-    label: "Energy Source",
+    key: 'E',
+    label: 'Energy Source',
     options: [
-      { label: "Introversion", value: "I" },
-      { label: "Extroversion", value: "E" },
-      { label: "Doesn't Matter", value: "any" },
+      { label: 'Introversion', value: 'I' },
+      { label: 'Extroversion', value: 'E' },
+      { label: "Doesn't Matter", value: 'any' },
     ],
   },
   {
-    key: "S",
-    label: "Information",
+    key: 'S',
+    label: 'Information',
     options: [
-      { label: "Sensing", value: "S" },
-      { label: "Intuition", value: "N" },
-      { label: "Doesn't Matter", value: "any" },
+      { label: 'Sensing', value: 'S' },
+      { label: 'Intuition', value: 'N' },
+      { label: "Doesn't Matter", value: 'any' },
     ],
   },
   {
-    key: "T",
-    label: "Decisions",
+    key: 'T',
+    label: 'Decisions',
     options: [
-      { label: "Thinking", value: "T" },
-      { label: "Feeling", value: "F" },
-      { label: "Doesn't Matter", value: "any" },
+      { label: 'Thinking', value: 'T' },
+      { label: 'Feeling', value: 'F' },
+      { label: "Doesn't Matter", value: 'any' },
     ],
   },
   {
-    key: "J",
-    label: "Lifestyle",
+    key: 'J',
+    label: 'Lifestyle',
     options: [
-      { label: "Judging", value: "J" },
-      { label: "Perceiving", value: "P" },
-      { label: "Doesn't Matter", value: "any" },
+      { label: 'Judging', value: 'J' },
+      { label: 'Perceiving', value: 'P' },
+      { label: "Doesn't Matter", value: 'any' },
     ],
   },
 ];
@@ -68,14 +68,15 @@ export default function CreateCompanion() {
   const [user_id, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
-  const [customName, setCustomName] = useState("");
+  const [customName, setCustomName] = useState('');
   const [showChatPreview, setShowChatPreview] = useState(false);
 
+  // Replace your mbtiFilter default with this:
   const [mbtiFilter, setMbtiFilter] = useState({
-    E: "Doesn’t matter",
-    S: "Doesn’t matter",
-    T: "Doesn’t matter",
-    J: "Doesn’t matter",
+    E: 'any',
+    S: 'any',
+    T: 'any',
+    J: 'any',
   });
 
   const {
@@ -85,13 +86,14 @@ export default function CreateCompanion() {
     selectedIntimacy,
     setDisplayName,
     setCurrentCompanion,
+    currentCompanion,
   } = useCompanionStore();
 
   useEffect(() => {
     const loadAll = async () => {
       try {
-        const modelModule = await import("../data/models");
-        const personalityModule = await import("../data/personalities");
+        const modelModule = await import('../data/models');
+        const personalityModule = await import('../data/personalities');
         setModels(modelModule.models || []);
         setPersonalities(personalityModule.default || []);
         const { data } = await supabase.auth.getUser();
@@ -99,7 +101,7 @@ export default function CreateCompanion() {
           setUserId(data.user.id);
         }
       } catch (err) {
-        console.error("Failed to load companion creation data:", err);
+        console.error('Failed to load companion creation data:', err);
       } finally {
         setLoading(false);
       }
@@ -108,31 +110,75 @@ export default function CreateCompanion() {
   }, []);
 
   const handleModelSelect = (id) => {
-    const model = models.find((m) => m.id === id);
+    // Guard: ensure models are loaded and the id exists
+    const model = Array.isArray(models) ? models.find((m) => m.id === id) : null;
+    if (!model) {
+      console.error('Model not found for id:', id, { models });
+      return;
+    }
+
     setSelectedModelId(id);
-    setSelectedAvatar(model);
+
+    // Preferred: store action if available
+    if (typeof setSelectedAvatar === 'function') {
+      setSelectedAvatar({
+        id: model.id,
+        image: model.image,
+        name: model.name,
+      });
+    } else {
+      // Fallback: hydrate currentCompanion so downstream UI doesn't break
+      console.warn('setSelectedAvatar is not a function — falling back to setCurrentCompanion');
+      const merged = {
+        ...(currentCompanion || {}),
+        model_id: model.id,
+        avatar_image_url: model.image ?? null,
+        name: currentCompanion?.name || customName || model.name || 'Companion',
+      };
+      setCurrentCompanion(merged);
+    }
+
     setStep(2);
   };
 
   const handlePersonalitySelect = (id) => {
-    const personality = personalities.find((p) => p.id === id);
+    const personality = Array.isArray(personalities)
+      ? personalities.find((p) => p.id === id)
+      : null;
+
+    if (!personality) {
+      console.error('Personality not found for id:', id, { personalities });
+      return;
+    }
+
     setSelectedPersonalityId(id);
-    setSelectedPersonality(personality);
+    if (typeof setSelectedPersonality === 'function') {
+      setSelectedPersonality(personality);
+    } else {
+      console.warn('setSelectedPersonality is not a function — skipping store set');
+    }
     setStep(3);
   };
 
   const handleSubmit = async () => {
-    console.log("🟢 handleSubmit called");
+    console.log('🟢 handleSubmit called');
 
     const result = await saveCompanionDataToSupabase({ user_id, customName });
-
     if (!result.success) {
-      console.error("❌ Failed to save companion:", result.error);
+      console.error('❌ Failed to save companion:', result.error);
       return;
     }
 
-    setCurrentCompanion(result.data);
-    setDisplayName(customName);
+    const chosenModel = models.find((m) => m.id === selectedModelId);
+
+    const merged = {
+      ...result.data,
+      name: customName || result.data?.name || chosenModel?.name || 'Companion',
+      avatar_image_url: result.data?.avatar_image_url || chosenModel?.image || null,
+    };
+
+    setCurrentCompanion(merged);
+    setDisplayName(merged.name);
     setShowSummaryModal(true);
   };
 
@@ -142,24 +188,22 @@ export default function CreateCompanion() {
     if (!mbti || mbti.length !== 4) return false;
     const [first, second, third, fourth] = mbti;
     return (
-      (mbtiFilter.E === "Doesn’t matter" || mbtiFilter.E[0] === first) &&
-      (mbtiFilter.S === "Doesn’t matter" || mbtiFilter.S[0] === second) &&
-      (mbtiFilter.T === "Doesn’t matter" || mbtiFilter.T[0] === third) &&
-      (mbtiFilter.J === "Doesn’t matter" || mbtiFilter.J[0] === fourth)
+      (mbtiFilter.E === 'any' || mbtiFilter.E[0] === first) &&
+      (mbtiFilter.S === 'any' || mbtiFilter.S[0] === second) &&
+      (mbtiFilter.T === 'any' || mbtiFilter.T[0] === third) &&
+      (mbtiFilter.J === 'any' || mbtiFilter.J[0] === fourth)
     );
   };
 
-  const filteredPersonalities = personalities.filter((p) =>
-    applyMbtiFilter(p.mbti),
-  );
+  const filteredPersonalities = personalities.filter((p) => applyMbtiFilter(p.mbti));
 
   const initials = customName
-    .split(" ")
+    .split(' ')
     .filter((word) => word.length > 0)
     .map((name) => name.charAt(0).toUpperCase())
-    .join("");
+    .join('');
 
-  const displayInitials = initials.length ? initials : "R";
+  const displayInitials = initials.length ? initials : 'R';
 
   if (loading) {
     return (
@@ -172,17 +216,14 @@ export default function CreateCompanion() {
   return (
     <main className="min-h-screen p-8 bg-black text-white">
       {step > 1 && (
-        <button
-          onClick={() => setStep(step - 1)}
-          className="text-blue-400 hover:underline mb-4"
-        >
+        <button onClick={() => setStep(step - 1)} className="text-blue-400 hover:underline mb-4">
           ← Back
         </button>
       )}
       <h1 className="text-2xl font-bold mb-4">
-        {step === 1 && "Choose Your AI Companion"}
+        {step === 1 && 'Choose Your AI Companion'}
         {step === 2 && `Choose a Personality for ${selectedModel?.name}`}
-        {step === 3 && "Choose Your Intimacy Archetype"}
+        {step === 3 && 'Choose Your Intimacy Archetype'}
       </h1>
 
       {step === 1 && (

@@ -1,73 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { models } from "../../data/models";
 import { supabase } from "../../utils/Supabase/supabaseClient";
+
 import { standardTiers, elitePackages, haremTier } from "../../data/pricing";
 import StandardTierCard from "../../components/StandardTierCard";
 import EliteTierCard from "../../components/EliteTierCard";
 import HaremTierCard from "../../components/HaremTierCard";
-import { getModelAssignments } from "../../utils/Companion/getModelAssignments";
-import ModelModal from "../../components/ModelModal";
 
-// Seeded deterministic shuffle
-function shuffle(array, seed = 123) {
-  let result = [...array];
-  let random = mulberry32(seed);
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+// NOTE: ModelModal + getModelAssignments removed on purpose (no big image popup)
 
-function mulberry32(seed) {
-  return function () {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+/** Stable sort by name (then id) to avoid hydration jitter */
+function stableSortByNameId(list) {
+  return [...list].sort((a, b) => {
+    const an = (a.name || "").toLowerCase();
+    const bn = (b.name || "").toLowerCase();
+    if (an < bn) return -1;
+    if (an > bn) return 1;
+    const ai = (a.id || "").toString();
+    const bi = (b.id || "").toString();
+    return ai < bi ? -1 : ai > bi ? 1 : 0;
+  });
 }
 
 export default function GuestPreviewWithPricing() {
   const router = useRouter();
-  const [userStatus, setUserStatus] = useState("guest");
-  const [selectedModel, setSelectedModel] = useState(null);
+  const [userStatus, setUserStatus] = useState("guest"); // 'guest' | 'noCompanion' | 'hasCompanion'
   const [sampleModels, setSampleModels] = useState([]);
 
-  // ✅ Handle model shuffle client-side to avoid hydration error
-  useEffect(() => {
-    const generateModels = () => {
-      const availableModels = models.filter((m) => m.name !== "Rika");
-      const premiumModels = availableModels.filter(
-        (m) => m.label === "premium",
-      );
-      const standardModels = availableModels.filter(
-        (m) => m.label !== "premium",
-      );
-
-      const seed = Math.floor(Math.random() * 100000);
-      const shuffledStandard = shuffle(standardModels, seed);
-
-      let chosenModels = [];
-
-      if (premiumModels.length > 0) {
-        const selectedPremium = shuffle(premiumModels, seed)[0];
-        chosenModels = [selectedPremium, ...shuffledStandard.slice(0, 4)];
-      } else {
-        chosenModels = shuffledStandard.slice(0, 5);
-      }
-
-      const finalShuffle = shuffle(chosenModels, seed + 99); // final mix
-      setSampleModels(finalShuffle);
-    };
-
-    generateModels();
-  }, []);
-
+  // ---------------------------
+  // Auth / status fetch
+  // ---------------------------
   useEffect(() => {
     const fetchStatus = async () => {
       const {
@@ -79,11 +45,15 @@ export default function GuestPreviewWithPricing() {
         return;
       }
 
-      const { data: companions } = await supabase
+      const { data: companions, error } = await supabase
         .from("companions")
         .select("companion_id")
         .eq("user_id", user.id)
         .eq("is_deleted", false);
+
+      if (error) {
+        console.warn("Companions fetch warning:", error.message);
+      }
 
       setUserStatus(
         !companions || companions.length === 0 ? "noCompanion" : "hasCompanion",
@@ -93,8 +63,57 @@ export default function GuestPreviewWithPricing() {
     fetchStatus();
   }, []);
 
-  const handleSubscribeClick = (tierName) => {
+  // ---------------------------
+  // Build deterministic lineup:
+  // - Exclude Rika (hostess)
+  // - Exactly 1 premium (first by stable sort)
+  // - 4 standard (first by stable sort)
+  // - Order: [premium, ...standards]
+  // ---------------------------
+  const lineup = useMemo(() => {
+    const available = models.filter((m) => m.name !== "Rika");
+
+    const premiums = stableSortByNameId(
+      available.filter((m) => m.label === "premium"),
+    );
+    const standards = stableSortByNameId(
+      available.filter((m) => m.label !== "premium"),
+    );
+
+    const chosenPremium = premiums.length ? [premiums[0]] : [];
+    const chosenStandards = standards.slice(0, 4);
+
+    const merged = [...chosenPremium, ...chosenStandards];
+    setSampleModels(merged);
+    return merged;
+  }, []);
+
+  // ---------------------------
+  // Routing handlers
+  // ---------------------------
+  function handleCreateWith(modelId) {
+    const createUrl = `/create?model=${encodeURIComponent(modelId)}`;
+    if (userStatus === "guest") {
+      router.push(`/register?next=${encodeURIComponent(createUrl)}`);
+    } else {
+      // Both noCompanion and hasCompanion can create/select
+      router.push(createUrl);
+    }
+  }
+
+  function handleUnlockPremium(modelId) {
+    // Route through your upgrade/paywall flow with context
+    const subscribeUrl = `/subscribe?model=${encodeURIComponent(modelId)}`;
+    if (userStatus === "guest") {
+      router.push(`/register?next=${encodeURIComponent(subscribeUrl)}`);
+    } else {
+      router.push(subscribeUrl);
+    }
+  }
+
+  function handleSubscribeClick(tierName) {
     if (tierName === "Free") {
+      // Same behavior you had before
       router.push("/chat?guest=true");
     } else if (userStatus === "guest") {
       router.push("/register");
@@ -103,7 +122,7 @@ export default function GuestPreviewWithPricing() {
     } else {
       router.push("/subscribe");
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-10 px-4 text-center">
@@ -121,7 +140,7 @@ export default function GuestPreviewWithPricing() {
         .
       </p>
 
-      {/* Companion Card Preview */}
+      {/* Companion Card Preview (fan layout, no modal) */}
       <div className="flex justify-center items-end gap-4 mb-12 min-h-[22rem]">
         {sampleModels.length === 0 ? (
           <p className="text-gray-400">Loading models...</p>
@@ -130,12 +149,22 @@ export default function GuestPreviewWithPricing() {
             const rotation = (index - 2) * 8;
             const isPremium = model.label === "premium";
 
+            const handleClick = () =>
+              isPremium
+                ? handleUnlockPremium(model.id)
+                : handleCreateWith(model.id);
+
             return (
               <div
                 key={model.id}
                 className="transform transition duration-300 hover:scale-105 cursor-pointer relative"
                 style={{ transform: `rotate(${rotation}deg)` }}
-                onClick={() => setSelectedModel(model)}
+                onClick={handleClick}
+                title={
+                  isPremium
+                    ? `Premium – Unlock ${model.name}`
+                    : `Create with ${model.name}`
+                }
               >
                 {isPremium && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-semibold z-10 shadow-md">
@@ -152,19 +181,14 @@ export default function GuestPreviewWithPricing() {
                 <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium text-center">
                   {model.name}
                 </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isPremium ? "Unlock to continue" : "Create with her"}
+                </p>
               </div>
             );
           })
         )}
       </div>
-
-      {selectedModel && (
-        <ModelModal
-          model={selectedModel}
-          onClose={() => setSelectedModel(null)}
-          getAssignments={getModelAssignments}
-        />
-      )}
 
       {/* Standard Pricing */}
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">

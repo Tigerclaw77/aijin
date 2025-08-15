@@ -1,4 +1,4 @@
-// import { calculateGiftEffect, getTotalGiftBonus } from './giftUtils.js';
+// import { calculateGiftEffect, getTotalGiftBonus } from '../Chat-Gifts/giftUtils.js';
 
 // // Rank-based intimacy growth curves
 // export const growthCurves = {

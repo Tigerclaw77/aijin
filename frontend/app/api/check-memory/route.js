@@ -1,84 +1,35 @@
-import { createClient } from "@supabase/supabase-js";
+// frontend/app/api/check-memory/route.js
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { NextResponse } from 'next/server';
+import { supabaseServer as supabase } from '../../../utils/Supabase/supabaseServerClient';
 
-// Memory levels mapped by tier
-const MEMORY_STORAGE = {
-  Sample: "volatile",
-  Free: "jsonb",
-  Crush: "jsonb",
-  Friend: "jsonb",
-  Girlfriend: "blocks",
-  Waifu: "blocks",
-};
+const MEMORY_ON = new Set(['friend', 'crush', 'girlfriend', 'waifu', 'harem']);
 
 export async function POST(req) {
   try {
-    console.log("📥 check-memory called");
-
-    const body = await req.json();
-    const { companion_id } = body;
-
+    const { companion_id } = await req.json();
     if (!companion_id) {
-      console.warn("⚠️ check-memory: Missing companion_id in request body");
-      return new Response(JSON.stringify({ memoryEnabled: false }), {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
+      return NextResponse.json({ memoryEnabled: false, error: 'missing_companion_id' }, { status: 400 });
     }
 
-    const { data: companion, error } = await supabase
-      .from("companions")
-      .select("tier")
-      .eq("companion_id", companion_id)
+    const { data, error } = await supabase
+      .from('companions')
+      .select('sub_tier')
+      .eq('companion_id', companion_id)
       .maybeSingle();
 
-    if (error) {
-      console.error("❌ Supabase error:", error.message);
-      return new Response(JSON.stringify({ memoryEnabled: false }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
-    }
+    if (error) return NextResponse.json({ memoryEnabled: false }, { status: 500 });
+    if (!data) return NextResponse.json({ memoryEnabled: false }, { status: 404 });
 
-    if (!companion) {
-      console.warn("⚠️ No companion found for ID:", companion_id);
-      return new Response(JSON.stringify({ memoryEnabled: false }), {
-        status: 404,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
-    }
+    const tier = (data.sub_tier || 'free').toString().toLowerCase();
+    const memoryEnabled = MEMORY_ON.has(tier);
 
-    const memoryLevel = MEMORY_STORAGE[companion.tier] || "volatile";
-    const memoryEnabled = memoryLevel !== "volatile";
-
-    return new Response(JSON.stringify({ memoryEnabled, memoryLevel }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (err) {
-    console.error("❌ check-memory: Top-level failure:", err);
-    return new Response(JSON.stringify({ memoryEnabled: false }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-      },
-    });
+    return NextResponse.json({ memoryEnabled, tier });
+  } catch {
+    return NextResponse.json({ memoryEnabled: false }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ ok: true, endpoint: 'check-memory' });
 }

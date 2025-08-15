@@ -1,6 +1,5 @@
-import { calculateBaseIntimacy } from "./calculateBaseIntimacy";
 import { calculateGiftXP } from "./calculateGiftXP";
-import { calculateDailyIntimacyDelta } from "./intimacyDeltaEngine";
+import { levelFromXP as calculateBaseIntimacy } from "./intimacyLevels";
 
 /**
  * Compute today's physical intimacy delta based on XP and growth curve.

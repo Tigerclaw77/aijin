@@ -1,5 +1,5 @@
 // // /utils/Gift/getRecentGifts.js
-// import { supabaseServer } from "../Supabase/supabaseServerClient";
+// import { supabaseServer } from "../../../utils/Supabase/supabaseServerClient.js";
 
 // /**
 //  * Fetch recent gifts given to a companion by user.

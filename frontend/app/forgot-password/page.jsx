@@ -1,11 +1,11 @@
 // app/forgot-password/page.jsx
-"use client";
-import { useState } from "react";
+'use client';
+import { useState } from 'react';
 
-import { supabaseServer } from "../../utils/Supabase/supabaseServerClient";
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
 
@@ -34,10 +34,7 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button
-            className="bg-pink-600 text-white px-4 py-2 rounded"
-            onClick={handleReset}
-          >
+          <button className="bg-pink-600 text-white px-4 py-2 rounded" onClick={handleReset}>
             Send Reset Link
           </button>
           {error && <p className="text-red-600 mt-2">{error}</p>}

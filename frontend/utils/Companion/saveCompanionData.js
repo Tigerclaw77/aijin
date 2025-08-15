@@ -29,13 +29,13 @@ export async function saveCompanionDataToSupabase({
   const companionName =
     customName.trim() || selectedAvatar.name || "Unnamed Companion";
 
-  const matchedArchetype = intimacyArchetypes.find(
-    (a) =>
-      a.verbal === selectedIntimacy.verbal &&
-      a.physical === selectedIntimacy.physical
-  );
-  const archetypeName = matchedArchetype?.name || "Custom";
-  const archetypeId = matchedArchetype?.id || "custom";
+  // const matchedArchetype = intimacyArchetypes.find(
+  //   (a) =>
+  //     a.verbal === selectedIntimacy.verbal &&
+  //     a.physical === selectedIntimacy.physical
+  // );
+  // const archetypeName = matchedArchetype?.name || "Custom";
+  // const archetypeId = matchedArchetype?.id || "custom";
 
   const saveHash = `${user_id}-${selectedAvatar.id}-${selectedPersonality.id}-${selectedIntimacy.verbal}-${selectedIntimacy.physical}-${companionName}`;
   if (saveHash === lastSavedHash) {
@@ -54,13 +54,13 @@ export async function saveCompanionDataToSupabase({
         model_id: selectedAvatar.id,
         personality_id: selectedPersonality.id,
         avatar_image_url: selectedAvatar.image,
-        intimacy_archetype: archetypeName,
+        // intimacy_archetype: archetypeName,
         verbal_intimacy: selectedIntimacy.verbal,
         physical_intimacy: selectedIntimacy.physical,
-        verbal_curve_type: selectedIntimacy.verbal,
-        physical_curve_type: selectedIntimacy.physical,
+        // verbal_curve_type: selectedIntimacy.verbal,
+        // physical_curve_type: selectedIntimacy.physical,
         created_at: new Date().toISOString(),
-        tier: "sample",
+        sub_tier: "sample",
         status: "active",
       },
     ])

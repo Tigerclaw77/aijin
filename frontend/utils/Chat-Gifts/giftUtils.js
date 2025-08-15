@@ -1,48 +1,16 @@
+// utils/Chat-Gifts/giftUtils.js
+
 // 🎁 Master gift catalog
 export const giftCatalog = {
-  tea: {
-    value: 0.05,
-    halfLife: 24,
-    type: 'verbal',
-    pauseDurationHours: 6,
-  },
-  coffee: {
-    value: 0.10,
-    halfLife: 24,
-    type: 'physical',
-    pauseDurationHours: 6,
-  },
-  boba: {
-    value: 0.20,
-    halfLife: 24,
-    type: 'both',
-    pauseDurationHours: 24,
-  },
-  energy_drink: {
-    value: 0.50,
-    halfLife: 6,
-    type: 'both',
-    pauseDurationHours: 12,
-  },
-  rose: {
-    value: 0.30,
-    halfLife: 72,
-    type: 'verbal',
-    pauseDurationHours: 24,
-  },
-  lingerie: {
-    value: 0.40,
-    halfLife: 72,
-    type: 'physical',
-    pauseDurationHours: 48,
-  },
+  tea:         { value: 0.05, halfLife: 24, type: 'verbal',   pauseDurationHours: 6  },
+  coffee:      { value: 0.10, halfLife: 24, type: 'physical', pauseDurationHours: 6  },
+  boba:        { value: 0.20, halfLife: 24, type: 'both',     pauseDurationHours: 24 },
+  energy_drink:{ value: 0.50, halfLife: 6,  type: 'both',     pauseDurationHours: 12 },
+  rose:        { value: 0.30, halfLife: 72, type: 'verbal',   pauseDurationHours: 24 },
+  lingerie:    { value: 0.40, halfLife: 72, type: 'physical', pauseDurationHours: 48 },
 };
 
-// Grabs gift data from Gift Shop
-/**
- * Normalize raw gift data into internal format.
- * Accepts Supabase rows or manually constructed data.
- */
+// ■ Normalize raw rows from Supabase (or manual objects) → internal format
 export function getGiftEffectList(giftsRaw = []) {
   return giftsRaw.map((gift) => ({
     id: gift.id || gift.gift_id,
@@ -50,27 +18,44 @@ export function getGiftEffectList(giftsRaw = []) {
   }));
 }
 
-// Caluclates current exp bonus from a gift
 /**
- * Calculate the decayed bonus effect of a gift over time.
+ * Pure decay (no pause-window) — kept for reuse/clarity.
  * @param {number} initialValue
- * @param {number} tHours - Hours since given
- * @param {number} halfLife - Half-life in hours
+ * @param {number} tHours - hours since start of decay
+ * @param {number} halfLife - half-life in hours
  * @returns {number}
  */
 export function calculateGiftEffect(initialValue, tHours, halfLife = 24) {
   const decayed = initialValue * Math.pow(0.5, tHours / halfLife);
-  return decayed >= 0.05 * initialValue ? decayed : 0; // Drop tiny effects
+  return decayed >= 0.05 * initialValue ? decayed : 0; // drop tiny tail
 }
 
-//Calculates combined current exp bonuses from all gifts
+/**
+ * Effect at a timestamp, honoring pause windows before decay starts.
+ * @param {string} giftId
+ * @param {Date} givenAt
+ * @param {Date} now
+ * @returns {number}
+ */
+export function effectAtTime(giftId, givenAt, now = new Date()) {
+  const meta = giftCatalog[giftId];
+  if (!meta) return 0;
+
+  const dtHours = (now - givenAt) / 3600000;
+  const pause = meta.pauseDurationHours || 0;
+
+  if (dtHours <= pause) {
+    // still in pause window → full effect
+    return meta.value;
+  }
+  // decay starts after pause
+  const t = dtHours - pause;
+  return calculateGiftEffect(meta.value, t, meta.halfLife);
+}
+
 /**
  * Sum total active gift bonus for a given intimacy type.
- * @param {Array} giftList - Normalized gift list
- * @param {Date} currentTime - Timestamp (default: now)
- * @param {'verbal'|'physical'} targetType
- * @param {number} residualCap - Max combined floor effect (default: 0.3)
- * @returns {number}
+ * type can be 'verbal' | 'physical' | 'both'
  */
 export function getTotalGiftBonus(
   giftList = [],
@@ -78,70 +63,58 @@ export function getTotalGiftBonus(
   targetType = 'verbal'
 ) {
   let active = 0;
-
   for (const gift of giftList) {
-    const giftMeta = giftCatalog[gift.id];
-    if (!giftMeta) continue;
+    const meta = giftCatalog[gift.id];
+    if (!meta) continue;
 
-    const applies = giftMeta.type === targetType || giftMeta.type === 'both';
+    const applies =
+      targetType === 'both' ||
+      meta.type === targetType ||
+      meta.type === 'both';
+
     if (!applies) continue;
 
-    const tHours = (currentTime - gift.givenAt) / 3600000;
-    const effect = calculateGiftEffect(giftMeta.value, tHours, giftMeta.halfLife);
-
-    if (effect > 0) {
-      active += effect;
-    }
+    const v = effectAtTime(gift.id, gift.givenAt, currentTime);
+    if (v > 0) active += v;
   }
-
   return active;
 }
 
-//Checks if any gift pause effect is active 
-/**
- * Returns true if any gift has a paused decay window currently active.
- * @param {Array} giftList
- * @param {Date} now
- * @returns {boolean}
- */
+/** Any gift still inside its pause window? */
 export function isGiftEffectActive(giftList = [], now = new Date()) {
   return giftList.some((giftRaw) => {
     const id = giftRaw.id || giftRaw.gift_id;
     const ts = new Date(giftRaw.given_at || giftRaw.timestamp);
-    const giftMeta = giftCatalog[id];
-    if (!giftMeta?.pauseDurationHours) return false;
-
-    const end = new Date(ts.getTime() + giftMeta.pauseDurationHours * 3600000);
+    const meta = giftCatalog[id];
+    if (!meta?.pauseDurationHours) return false;
+    const end = new Date(ts.getTime() + meta.pauseDurationHours * 3600000);
     return now >= ts && now <= end;
   });
 }
 
-//Adds Gift exp bonus to base intimacy
-/**
- * Simple wrapper to add baseLevel + giftBonus
- * @param {number} baseXP
- * @param {number} giftBonus
- * @returns {number}
- */
+// --- XP/Level helpers you already had (kept for compatibility) ---
 import { getIntimacyRank } from '../Intimacy/intimacyRankEngine.js';
 
 export function getEffectiveIntimacyLevel(baseXP = 0, giftXP = 0) {
   return getIntimacyRank(baseXP + giftXP);
 }
 
-//Check for temporary level change due to gifts
-/**
- * Determine the effective level from current XP and gift XP.
- * Returns a temporary level if the gift boosts it across a threshold.
- * @param {number} currentXP - Base XP from Supabase
- * @param {number} giftXP - Temporary XP boost from gifts
- * @returns {number} effective level (1–5)
- */
 export function getEffectiveLevel(currentXP, giftXP = 0) {
   const totalXP = currentXP + giftXP;
   if (totalXP >= 5000) return 5;
   if (totalXP >= 3000) return 4;
   if (totalXP >= 1500) return 3;
-  if (totalXP >= 500) return 2;
+  if (totalXP >= 500)  return 2;
   return 1;
+}
+
+/**
+ * 🔧 Compat shim for older code that used a single "calculateGiftXP".
+ * Returns a bounded sum across BOTH types.
+ */
+export function calculateGiftXP(gifts = [], now = new Date()) {
+  const list = getGiftEffectList(gifts);
+  // Treat the summed effect as a *level* boost; clamp to something sane.
+  const total = getTotalGiftBonus(list, now, 'both');
+  return Math.min(total, 1.0);
 }

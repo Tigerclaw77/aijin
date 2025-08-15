@@ -1,16 +1,16 @@
 // @ts-check
 /// <reference path="./memoryTypes.d.ts" />
 
-import { OpenAI } from "openai";
-import { supabaseServer } from "../../utils/Supabase/supabaseServerClient";
+import { OpenAI } from 'openai';
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
 
 // ✅ OpenRouter setup
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
+  baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
-    "HTTP-Referer": "https://aijin.ai",
-    "X-Title": "Aijin AI Companion",
+    'HTTP-Referer': 'https://aijin.ai',
+    'X-Title': 'Aijin AI Companion',
   },
 });
 
@@ -33,14 +33,14 @@ function includesKeyword(text, keyword) {
  */
 export async function getRelevantMemory(user_id, companion_id, inputText) {
   const { data: record, error } = await supabaseServer
-    .from("memories")
-    .select("content")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
+    .from('memories')
+    .select('content')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
     .maybeSingle();
 
   if (error) {
-    console.error("❌ Supabase error (getRelevantMemory):", error);
+    console.error('❌ Supabase error (getRelevantMemory):', error);
     return [];
   }
 
@@ -63,14 +63,14 @@ export async function addMemory(user_id, companion_id, memoryBlock) {
   memoryBlock.lastReinforced = memoryBlock.createdAt;
 
   const { data: existing, error: selectError } = await supabaseServer
-    .from("memories")
-    .select("content")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
+    .from('memories')
+    .select('content')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
     .maybeSingle();
 
   if (selectError) {
-    console.error("❌ Supabase error (select):", selectError);
+    console.error('❌ Supabase error (select):', selectError);
     return null;
   }
 
@@ -79,22 +79,20 @@ export async function addMemory(user_id, companion_id, memoryBlock) {
   if (existing?.content) {
     newMemories = [...existing.content, memoryBlock];
     const { error: updateError } = await supabaseServer
-      .from("memories")
+      .from('memories')
       .update({ content: newMemories })
-      .eq("user_id", user_id)
-      .eq("companion_id", companion_id);
-    if (updateError) console.error("❌ Supabase error (update):", updateError);
+      .eq('user_id', user_id)
+      .eq('companion_id', companion_id);
+    if (updateError) console.error('❌ Supabase error (update):', updateError);
   } else {
     newMemories = [memoryBlock];
-    const { error: insertError } = await supabaseServer
-      .from("memories")
-      .insert({
-        user_id,
-        companion_id,
-        content: newMemories,
-        type: "memory_blocks", // ✅ Type tag added
-      });
-    if (insertError) console.error("❌ Supabase error (insert):", insertError);
+    const { error: insertError } = await supabaseServer.from('memories').insert({
+      user_id,
+      companion_id,
+      content: newMemories,
+      type: 'memory_blocks', // ✅ Type tag added
+    });
+    if (insertError) console.error('❌ Supabase error (insert):', insertError);
   }
 
   return memoryBlock;
@@ -105,14 +103,14 @@ export async function addMemory(user_id, companion_id, memoryBlock) {
  */
 export async function reinforceMemory(user_id, companion_id, memory_id) {
   const { data: record, error } = await supabaseServer
-    .from("memories")
-    .select("content")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
+    .from('memories')
+    .select('content')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
     .maybeSingle();
 
   if (error) {
-    console.error("❌ Supabase error (reinforce):", error);
+    console.error('❌ Supabase error (reinforce):', error);
     return;
   }
 
@@ -123,13 +121,13 @@ export async function reinforceMemory(user_id, companion_id, memory_id) {
   );
 
   const { error: updateError } = await supabaseServer
-    .from("memories")
+    .from('memories')
     .update({ content: updated })
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id);
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id);
 
   if (updateError) {
-    console.error("❌ Supabase error (reinforce update):", updateError);
+    console.error('❌ Supabase error (reinforce update):', updateError);
   }
 }
 
@@ -138,14 +136,14 @@ export async function reinforceMemory(user_id, companion_id, memory_id) {
  */
 export async function getAllMemory(user_id, companion_id) {
   const { data: record, error } = await supabaseServer
-    .from("memories")
-    .select("content")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
+    .from('memories')
+    .select('content')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
     .maybeSingle();
 
   if (error) {
-    console.error("❌ Supabase error (getAllMemory):", error);
+    console.error('❌ Supabase error (getAllMemory):', error);
     return [];
   }
 
@@ -155,24 +153,15 @@ export async function getAllMemory(user_id, companion_id) {
 /**
  * Inject relevant memory into a system prompt
  */
-export async function injectMemoryToPrompt(
-  user_id,
-  companion_id,
-  inputText,
-  basePrompt
-) {
-  const memorySummaries = await getRelevantMemory(
-    user_id,
-    companion_id,
-    inputText
-  );
+export async function injectMemoryToPrompt(user_id, companion_id, inputText, basePrompt) {
+  const memorySummaries = await getRelevantMemory(user_id, companion_id, inputText);
   if (!memorySummaries.length) return basePrompt;
 
   const memoryContext = `You remember these facts about the user:\n- ${memorySummaries.join(
-    "\n- "
+    '\n- '
   )}`;
 
-  return [{ role: "system", content: memoryContext }, ...basePrompt];
+  return [{ role: 'system', content: memoryContext }, ...basePrompt];
 }
 
 /**
@@ -181,7 +170,7 @@ export async function injectMemoryToPrompt(
 export async function extractMemoryFromChat(messages) {
   const prompt = `Extract long-term facts about the user or their life from this conversation:
 
-${messages.map((m) => `${m.role}: ${m.content}`).join("\n")}
+${messages.map((m) => `${m.role}: ${m.content}`).join('\n')}
 
 Respond in JSON like:
 [
@@ -199,8 +188,8 @@ Respond in JSON like:
 ]`;
 
   const response = await openai.chat.completions.create({
-    model: "openrouter/openai/gpt-4o", // 🔁 Swap model here later if needed
-    messages: [{ role: "user", content: prompt }],
+    model: 'openrouter/openai/gpt-4o', // 🔁 Swap model here later if needed
+    messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
   });
 
@@ -208,7 +197,7 @@ Respond in JSON like:
     const parsed = JSON.parse(response.choices[0].message.content);
     return parsed;
   } catch (e) {
-    console.error("❌ Failed to parse extracted memory:", e);
+    console.error('❌ Failed to parse extracted memory:', e);
     return [];
   }
 }

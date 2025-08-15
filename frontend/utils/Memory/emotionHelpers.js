@@ -1,5 +1,5 @@
 // /utils/Memory/emotionHelpers.js
-import { supabaseServer } from "../Supabase/supabaseServerClient";
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
 
 /**
  * Fetch the most recent memory with an emotion tag
@@ -9,16 +9,16 @@ import { supabaseServer } from "../Supabase/supabaseServerClient";
  */
 export async function getRecentEmotionTag(user_id, companion_id) {
   const { data, error } = await supabaseServer
-    .from("memories")
-    .select("emotion, created_at")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
-    .not("emotion", "is", null)
-    .order("created_at", { ascending: false })
+    .from('memories')
+    .select('emotion, created_at')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
+    .not('emotion', 'is', null)
+    .order('created_at', { ascending: false })
     .limit(1);
 
   if (error) {
-    console.error("⚠️ getRecentEmotionTag failed:", error.message);
+    console.error('⚠️ getRecentEmotionTag failed:', error.message);
     return null;
   }
 

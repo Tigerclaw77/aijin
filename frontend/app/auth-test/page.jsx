@@ -1,10 +1,10 @@
-"use client";
-export const runtime = "nodejs";
+'use client';
+export const runtime = 'nodejs';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { supabaseServer } from "../../utils/Supabase/supabaseServerClient";
-import useAuthStore from "../../store/authStore";
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
+import useAuthStore from '../../store/authStore';
 
 export default function AuthTest() {
   const [loading, setLoading] = useState(true);
@@ -28,15 +28,13 @@ export default function AuthTest() {
     getSession();
 
     // Optional: Listen for changes
-    const { data: listener } = supabaseServer.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-        } else {
-          clearUser();
-        }
+    const { data: listener } = supabaseServer.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        clearUser();
       }
-    );
+    });
 
     return () => listener?.subscription.unsubscribe();
   }, []);
@@ -64,7 +62,7 @@ export default function AuthTest() {
             e.preventDefault();
             const email = e.target.email.value;
             await supabaseServer.auth.signInWithOtp({ email });
-            alert("Check your email for the magic link");
+            alert('Check your email for the magic link');
           }}
         >
           <input
@@ -73,10 +71,7 @@ export default function AuthTest() {
             placeholder="Enter your email"
             className="border p-2 mr-2"
           />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
             Send Magic Link
           </button>
         </form>

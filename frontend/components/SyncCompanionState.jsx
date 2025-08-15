@@ -9,82 +9,97 @@ import { intimacyArchetypes } from "../data/intimacy";
 
 export default function SyncCompanionState() {
   const { user } = useAuthStore();
-
   const {
     currentCompanion,
     setCurrentCompanion,
     setSelectedPersonality,
-    setSelectedAvatar,
     setSelectedIntimacy,
     setSelectedIntimacyArchetype,
     setCustomName,
   } = useCompanionStore();
 
   useEffect(() => {
-    const fetchAndSetCompanion = async () => {
-      const user_id = user?.id;
-      if (!user_id) {
-        console.warn("⛔ No user_id found in auth store");
-        return;
-      }
+    // Only run after we have a user id, and only once (don’t re-run if already set)
+    if (!user?.id) return;
+    if (currentCompanion?.companion_id) return;
 
-      // 🛑 Skip if companion is set
-      if (currentCompanion?.companion_id) {
-        console.log("⏭️ Skipping sync (companion exists)");
-        return;
-      }
-
-      // ✅ Step 1: Fetch selected_companion_id from profiles table
+    (async () => {
+      // Pull selected_companion_id from profiles (key is `id`)
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("selected_companion_id")
-        .eq("user_id", user_id)
+        .eq("id", user.id)
         .single();
 
-      if (profileError || !profile?.selected_companion_id) {
-        console.warn(
-          "⛔ Missing selected_companion_id in profile:",
-          profileError,
-        );
-        return;
+      if (profileError) {
+        console.warn("Profile fetch error:", profileError.message);
       }
 
-      const companion_id = profile.selected_companion_id;
+      // No selection → seed preview Rika and stop (no DB writes, no avatar/model to avoid syncers)
+      if (!profile?.selected_companion_id) {
+  console.info("Seeding Rika preview...");
 
-      // ✅ Step 2: Fetch companion data
+  const p =
+    (Array.isArray(personalities) &&
+      (personalities.find((x) => x.id === "rika_hostess_personality") ||
+        personalities.find((x) =>
+          /rika/i.test((x?.name || x?.nickname || ""))
+        ) ||
+        personalities[0])) ||
+    null;
+
+  const arch =
+    (Array.isArray(intimacyArchetypes) && intimacyArchetypes[0]) || null;
+
+  // Seed ONLY the companion object (no avatar/model fields to avoid syncers)
+  setCurrentCompanion({
+    companion_id: "HOSTESS_RIKA_ID",
+    name: "Rika",
+    avatar_image_url: null,            // avoid 404
+    personality_id: p?.id ?? null,
+    verbal_intimacy: 1,
+    physical_intimacy: 1,
+    intimacy_archetype: arch?.name ?? null,
+    custom_name: null,
+  });
+
+  // Call optional UI setters ONLY if they exist in this build
+  if (p && typeof setSelectedPersonality === "function") {
+    setSelectedPersonality(p);
+  }
+  if (typeof setSelectedIntimacy === "function") {
+    setSelectedIntimacy({ verbal: 1, physical: 1 });
+  }
+  if (arch && typeof setSelectedIntimacyArchetype === "function") {
+    setSelectedIntimacyArchetype(arch);
+  }
+  if (typeof setCustomName === "function") {
+    setCustomName(null);
+  }
+
+  return;
+}
+
+
+      // Otherwise load the actual companion
       const { data: companion, error: companionError } = await supabase
         .from("companions")
         .select("*")
-        .eq("companion_id", companion_id)
+        .eq("companion_id", profile.selected_companion_id)
         .single();
 
       if (companionError || !companion) {
-        console.error("🛑 Failed to fetch companion:", companionError?.message);
+        console.error("Failed to fetch companion:", companionError?.message);
         return;
       }
 
-      console.log("✅ Companion loaded:", companion);
       setCurrentCompanion(companion);
 
-      // ✅ Step 3: Set related state (personality, avatar, intimacy, archetype, name)
-      const personality = personalities.find(
-        (p) => p.id === companion.personality_id,
-      );
-      if (personality) {
-        setSelectedPersonality(personality);
-      }
-
-      if (companion.model_id && companion.avatar_image_url) {
-        setSelectedAvatar({
-          id: companion.model_id,
-          image: companion.avatar_image_url,
-        });
-      } else {
-        console.warn("⚠️ Missing model_id or avatar_image_url", {
-          model_id: companion.model_id,
-          avatar_image_url: companion.avatar_image_url,
-        });
-      }
+      // Optionally wire personality/intimacy UI here (unchanged from your working path)
+      const pReal =
+        Array.isArray(personalities) &&
+        personalities.find((x) => x.id === companion.personality_id);
+      if (pReal) setSelectedPersonality(pReal);
 
       if (
         companion.verbal_intimacy !== null &&
@@ -96,20 +111,14 @@ export default function SyncCompanionState() {
         });
       }
 
-      const intimacyArchetype = intimacyArchetypes.find(
-        (a) => a.name === companion.intimacy_archetype,
-      );
-      if (intimacyArchetype) {
-        setSelectedIntimacyArchetype(intimacyArchetype);
-      }
+      const archReal =
+        Array.isArray(intimacyArchetypes) &&
+        intimacyArchetypes.find((a) => a.name === companion.intimacy_archetype);
+      if (archReal) setSelectedIntimacyArchetype(archReal);
 
-      if (companion.custom_name) {
-        setCustomName(companion.custom_name);
-      }
-    };
-
-    fetchAndSetCompanion();
-  }, [user, currentCompanion]);
+      if (companion.custom_name) setCustomName(companion.custom_name);
+    })();
+  }, [user?.id, currentCompanion?.companion_id, setCurrentCompanion, setSelectedPersonality, setSelectedIntimacy, setSelectedIntimacyArchetype, setCustomName]);
 
   return null;
 }

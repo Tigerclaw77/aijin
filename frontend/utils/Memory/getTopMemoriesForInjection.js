@@ -1,4 +1,4 @@
-import { supabaseServer } from "../Supabase/supabaseServerClient";
+import { supabaseServer } from '../../../utils/Supabase/supabaseServerClient';
 
 const emotionWeights = {
   love: 0.5,
@@ -11,14 +11,14 @@ const emotionWeights = {
 
 export async function getTopMemoriesForInjection(user_id, companion_id, limit = 10) {
   const { data, error } = await supabaseServer
-    .from("memories")
-    .select("message_id, content, created_at, emotion")
-    .eq("user_id", user_id)
-    .eq("companion_id", companion_id)
-    .not("content", "is", null);
+    .from('memories')
+    .select('message_id, content, created_at, emotion')
+    .eq('user_id', user_id)
+    .eq('companion_id', companion_id)
+    .not('content', 'is', null);
 
   if (error) {
-    console.error("⚠️ Error fetching memories:", error.message);
+    console.error('⚠️ Error fetching memories:', error.message);
     return [];
   }
 
@@ -36,7 +36,5 @@ export async function getTopMemoriesForInjection(user_id, companion_id, limit = 
     };
   });
 
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+  return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }

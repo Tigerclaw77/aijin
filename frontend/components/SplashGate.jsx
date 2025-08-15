@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../utils/Supabase/supabaseClient";
 
 export default function SplashGate({ children }) {
-  const [allowed, setAllowed] = useState(false);
+  const [allowed, setAllowed] = useState(true);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
 

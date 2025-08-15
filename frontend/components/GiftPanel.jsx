@@ -162,7 +162,7 @@ export default function GiftPanel({
               className="flex flex-col justify-between flex-1 rounded-lg p-3 text-center shadow-md border bg-white"
             >
               <div className="text-3xl mb-1">{gift.emoji}</div>
-              <div className="font-semibold text-gray-700">{gift.id}</div>
+              <div className="font-semibold text-gray-700">{gift.name}</div>
               <div className="text-xs text-gray-500">{gift.desc}</div>
               <div className="mt-auto pt-2">
                 <button
