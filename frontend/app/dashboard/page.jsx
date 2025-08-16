@@ -1,27 +1,26 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { supabase } from "../../utils/Supabase/supabaseClient";
-import ProtectedRoute from "../../components/ProtectedRoute";
-import useAuthStore from "../../store/authStore";
-import useCompanionStore from "../../store/companionStore";
-import { models } from "../../data/models";
-import personalities from "../../data/personalities";
-import { intimacyArchetypes } from "../../data/intimacy";
+import { supabase } from '../../utils/Supabase/supabaseClient';
+import ProtectedRoute from '../../components/ProtectedRoute';
+import useAuthStore from '../../store/authStore';
+import useCompanionStore from '../../store/companionStore';
+import { models } from '../../data/models';
+import personalities from '../../data/personalities';
+import { intimacyArchetypes } from '../../data/intimacy';
 
-import MeterBar from "../../components/MeterBar";
+import MeterBar from '../../components/MeterBar';
 import {
-    getTotalGiftBonus,
-    getGiftEffectList,
-    getEffectiveLevel,
-  } from "../../utils/Chat-Gifts/giftUtils";
-import { getIntimacyRank } from "../../utils/Intimacy/intimacyRankEngine";
+  getTotalGiftBonus,
+  getGiftEffectList,
+  getEffectiveLevel,
+} from '../../utils/Chat-Gifts/giftUtils';
+import { getIntimacyRank } from '../../utils/Intimacy/intimacyRankEngine';
 
 const UnlockButton = ({ type, onClick }) => {
-  const label =
-    type === "verbal" ? "Unlock Emotional Intimacy" : "Unlock Physical Intimacy";
+  const label = type === 'verbal' ? 'Unlock Emotional Intimacy' : 'Unlock Physical Intimacy';
 
   return (
     <button
@@ -65,9 +64,9 @@ function DashboardContent() {
 
   const [companions, setCompanions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState('');
   const [editName, setEditName] = useState(false);
-  const [nameInput, setNameInput] = useState("");
+  const [nameInput, setNameInput] = useState('');
   const [showVerbalUnlock, setShowVerbalUnlock] = useState(null);
   const [showPhysicalUnlock, setShowPhysicalUnlock] = useState(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -75,20 +74,20 @@ function DashboardContent() {
   useEffect(() => {
     if (!user?.id) return;
 
-    setDisplayName(user.profile?.display_name || user.email || "");
+    setDisplayName(user.profile?.display_name || user.email || '');
 
     const fetchCompanions = async () => {
       const { data: companions, error } = await supabase
-        .from("companions")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .eq("soft_deleted", false)
-        .eq("archived", false)
-        .order("created_at", { ascending: true });
+        .from('companions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .eq('soft_deleted', false)
+        .eq('archived', false)
+        .order('created_at', { ascending: true });
 
       if (error) {
-        console.error("Error fetching companions:", error);
+        console.error('Error fetching companions:', error);
         setCompanions([]);
         setLoading(false);
         return;
@@ -96,31 +95,25 @@ function DashboardContent() {
 
       const enriched = companions.map((comp) => {
         const modelData = models.find((m) => m.id === comp.model_id);
-        const personalityData = personalities.find(
-          (p) => p.id === comp.personality_id,
-        );
-        const archetypeData = intimacyArchetypes.find(
-          (a) => a.name === comp.intimacy_archetype,
-        );
+        const personalityData = personalities.find((p) => p.id === comp.personality_id);
+        const archetypeData = intimacyArchetypes.find((a) => a.name === comp.intimacy_archetype);
 
         const giftList = getGiftEffectList(comp.gifts || []);
-        const giftXPVerbal = getTotalGiftBonus(giftList, new Date(), "verbal");
-        const giftXPPhysical = getTotalGiftBonus(giftList, new Date(), "physical");
+        const giftXPVerbal = getTotalGiftBonus(giftList, new Date(), 'verbal');
+        const giftXPPhysical = getTotalGiftBonus(giftList, new Date(), 'physical');
 
         const effectiveVerbalLevel = getEffectiveLevel(comp.verbal_xp, giftXPVerbal);
         const effectivePhysicalLevel = getEffectiveLevel(comp.physical_xp, giftXPPhysical);
 
-
         return {
           ...comp,
-          model_name: modelData?.name || "Unknown Model",
-          avatar_image_url:
-            modelData?.image || comp.avatar_image_url || "/default-avatar.png",
-          name: comp.custom_name?.trim() || modelData?.name || "Unnamed",
+          model_name: modelData?.name || 'Unknown Model',
+          avatar_image_url: modelData?.image || comp.avatar_image_url || '/default-avatar.png',
+          name: comp.custom_name?.trim() || modelData?.name || 'Unnamed',
           personality_label: personalityData?.label
             ? `${personalityData.label} (${personalityData.id})`
-            : "Not set",
-          intimacy_archetype: archetypeData?.name || "Not set",
+            : 'Not set',
+          intimacy_archetype: archetypeData?.name || 'Not set',
 
           verbal_level: comp.verbal_level ?? 1,
           verbal_intimacy: comp.verbal_intimacy ?? 1,
@@ -144,6 +137,8 @@ function DashboardContent() {
         };
       });
 
+      // inside fetchCompanions(), after you build `enriched`:
+
       const uniqueById = {};
       const deduped = enriched.filter((c) => {
         if (uniqueById[c.companion_id]) return false;
@@ -151,11 +146,17 @@ function DashboardContent() {
         return true;
       });
 
+      // helper for sorting by sub_tier
+      function tierWeight(subTier) {
+        const map = { free: 0, friend: 1, crush: 2, girlfriend: 3, waifu: 4 };
+        return map[(subTier || '').toLowerCase()] ?? 0;
+      }
+
       const sorted = deduped.sort((a, b) => {
-        const tierA = a.tier || 0;
-        const tierB = b.tier || 0;
-        const relA = a.relationshipMeter || 0;
-        const relB = b.relationshipMeter || 0;
+        const tierA = tierWeight(a.sub_tier);
+        const tierB = tierWeight(b.sub_tier);
+        const relA = a.relationship_xp ?? 0; // or relationship_level if you prefer
+        const relB = b.relationship_xp ?? 0;
         return tierB - tierA || relB - relA;
       });
 
@@ -168,13 +169,15 @@ function DashboardContent() {
 
   const handleNameSave = async () => {
     const { error } = await supabase
-      .from("profiles")
+      .from('profiles')
       .update({ display_name: nameInput })
-      .eq("user_id", user.id);
+      .eq('user_id', user.id); // ✅ your schema uses user_id
 
     if (!error) {
       setDisplayName(nameInput);
       setEditName(false);
+    } else {
+      console.error('Failed to update display_name:', error);
     }
   };
 
@@ -188,13 +191,19 @@ function DashboardContent() {
         <h2 className="text-xl font-bold mb-4">Folders</h2>
         <ul className="space-y-2">
           <li>
-            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Favorites</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>
+              Favorites
+            </button>
           </li>
           <li>
-            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Sleeping Beauties</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>
+              Sleeping Beauties
+            </button>
           </li>
           <li>
-            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>Recent Break-ups</button>
+            <button className="hover:underline" onClick={() => setShowComingSoon(true)}>
+              Recent Break-ups
+            </button>
           </li>
         </ul>
       </aside>
@@ -236,10 +245,10 @@ function DashboardContent() {
 
           <div className="flex gap-3 mb-6">
             <button
-              onClick={() => router.push("/create")}
+              onClick={() => router.push('/create')}
               className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
             >
-              + Create New Companion
+              Create New Companion
             </button>
             <button
               onClick={() => setShowComingSoon(true)}
@@ -248,20 +257,15 @@ function DashboardContent() {
               Account Settings
             </button>
             <button
-              onClick={async () => {
-                await logout();
-                router.push("/login");
-              }}
+              onClick={() => router.push('/giftshop')}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
             >
-              Logout
+              Gift Shop
             </button>
           </div>
 
           {companions.length === 0 ? (
-            <p className="text-gray-500">
-              You haven’t created any companions yet.
-            </p>
+            <p className="text-gray-500">You haven’t created any companions yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {companions.map((companion) => (
@@ -269,11 +273,18 @@ function DashboardContent() {
                   key={companion.companion_id}
                   className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition"
                 >
-                  <img
-                    src={companion.avatar_image_url || "/default-avatar.png"}
-                    alt={companion.name}
-                    className="w-full h-78 object-cover object-top rounded mb-3"
-                  />
+                  <div className="relative mb-3">
+                    <img
+                      src={companion.avatar_image_url || '/default-avatar.png'}
+                      alt={companion.name}
+                      className="w-full h-112 object-cover object-top rounded"
+                    />
+                    {companion.sub_tier && (
+                      <span className="absolute top-2 right-2 bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded">
+                        {companion.sub_tier}
+                      </span>
+                    )}
+                  </div>
                   <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
                     {companion.custom_name?.trim() || companion.model_name}
                   </h2>
@@ -311,10 +322,16 @@ function DashboardContent() {
                   />
 
                   {companion.verbal_intimacy === 1 && (
-                    <UnlockButton
-                      type="verbal"
-                      onClick={() => setShowVerbalUnlock(companion)}
-                    />
+                    <div>
+                      <UnlockButton
+                        type="verbal"
+                        onClick={() => router.push('/giftshop?focus=verbal')}
+                      />
+                      <UnlockButton
+                        type="physical"
+                        onClick={() => router.push('/giftshop?focus=physical')}
+                      />
+                    </div>
                   )}
 
                   <MeterBar
@@ -342,7 +359,7 @@ function DashboardContent() {
                     <button
                       onClick={() => {
                         setCurrentCompanion(companion);
-                        router.push("/chat");
+                        router.push('/chat');
                       }}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded"
                     >
